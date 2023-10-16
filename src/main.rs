@@ -7,6 +7,7 @@ struct Scene {
     objects: Vec<Mesh>,
 }
 
+#[derive(Debug)] 
 struct Mesh {
     vertices: Vec<f64>,
     indices: Vec<i32>,
@@ -50,6 +51,7 @@ impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let stroke = Stroke::new(2.0, Color32::WHITE);
         egui::CentralPanel::default().show(ctx, |ui| {
+            println!("Number of objects in scene: {}", self.scene.objects.len());  // Debug print
             render_scene(&self.scene, stroke);
             let line_start = Pos2::new(50.0, 50.0);
             let line_end = Pos2::new(800.0, 800.0);
@@ -59,47 +61,38 @@ impl eframe::App for Content {
     }
 }
 
-fn render_scene(scene: &Scene, stroke: Stroke) {
-    for mesh in &scene.objects {
-        println!("{}", mesh.vertices[0]);  // Print the first element of vertices for each mesh
+fn initialize_scene() -> Scene {
+    println!("Initializing scene...");
+
+    let dummy_mesh = Mesh {
+        vertices: vec![0.0, 0.0, 0.0],  // A dummy vertex
+        indices: vec![0],  // A dummy index
+        position: [0.0, 0.0, 0.0],
+        rotation: [0.0, 0.0, 0.0],
+        scale: [1.0, 1.0, 1.0],
+    };
+
+    println!("Dummy mesh: {:?}", dummy_mesh);  // Debug print
+
+    Scene {
+        objects: vec![dummy_mesh],  // Adding the dummy mesh to the scene
     }
 }
 
-fn initialize_scene() -> Scene {
-    // Create a sample scene with some objects
-    let objects = vec![
-        Mesh {
-            vertices: vec![/* vertices for the first object */
-    // Front face
-    -100.0, -100.0, 100.0,
-    100.0, -100.0, 100.0,
-    100.0, 100.0, 100.0,
-    -100.0, 100.0, 100.0,
-    // Back face
-    -100.0, -100.0, -100.0,
-    100.0, -100.0, -100.0,
-    100.0, 100.0, -100.0,
-    -100.0, 100.0, -100.0,
-        ],
-            indices: vec![        // Front face
-            0, 1, 2, 0, 2, 3,
-            // Back face
-            4, 5, 6, 4, 6, 7,
-            // Top face
-            3, 2, 6, 3, 6, 7,
-            // Bottom face
-            0, 1, 5, 0, 5, 4,
-            // Left face
-            0, 3, 7, 0, 7, 4,
-            // Right face
-            1, 2, 6, 1, 6, 5,
-            ],
-            position: [0.0, 0.0, 0.0],
-            rotation: [0.0, 0.0, 0.0],
-            scale: [1.0, 1.0, 1.0],
-        },
-        // Add more objects as needed
-    ];
 
-    Scene { objects }
+
+fn render_scene(scene: &Scene, stroke: Stroke) {
+    println!("Rendering scene...");
+
+    println!("Length of objects: {}", scene.objects.len());  // Debug print
+
+    if scene.objects.is_empty() {
+        println!("No objects in the scene.");
+    } else {
+        println!("Number of objects: {}", scene.objects.len());
+
+        for (i, mesh) in scene.objects.iter().enumerate() {
+            println!("Mesh {}: {:?}", i, mesh);
+        }
+    }
 }
