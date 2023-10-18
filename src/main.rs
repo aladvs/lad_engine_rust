@@ -20,7 +20,11 @@ struct Mesh {
 
 fn main() -> Result<(), eframe::Error> {
    // env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
-    let options = eframe::NativeOptions::default();
+   // let options = eframe::NativeOptions::default();
+   let options = eframe::NativeOptions {
+    icon_data: Some(load_icon()),
+    ..Default::default()
+};
         let mut content = Content {
         text: String::default(),
         current_scene: Scene::default()
@@ -97,5 +101,23 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let line_end = Pos2::new(800.0, 800.0);
             
             ui.painter().line_segment([line_start, line_end], stroke);
+        }
+    }
+
+    pub(crate) fn load_icon() -> eframe::IconData {
+        let (icon_rgba, icon_width, icon_height) = {
+            let icon = include_bytes!("LadLogo.png");
+            let image = image::load_from_memory(icon)
+                .expect("Failed to open icon path")
+                .into_rgba8();
+            let (width, height) = image.dimensions();
+            let rgba = image.into_raw();
+            (rgba, width, height)
+        };
+        
+        eframe::IconData {
+            rgba: icon_rgba,
+            width: icon_width,
+            height: icon_height,
         }
     }
