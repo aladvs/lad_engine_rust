@@ -1,7 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::default;
-
 use eframe::egui;
 use egui::*;
 //TODO :: MAKE SURE SCENES ARE PASSED ON FROM MAIN, SO EVERYTHING ACTUALLY WORKS
@@ -63,11 +61,7 @@ impl eframe::App for Content {
         let stroke = Stroke::new(2.0, Color32::WHITE);
         egui::CentralPanel::default().show(ctx, |ui| {
             println!("Number of objects in scene: {}", self.current_scene.objects.len()); 
-            render_scene(&self.current_scene, stroke);
-            let line_start = Pos2::new(50.0, 50.0);
-            let line_end = Pos2::new(800.0, 800.0);
-            
-            ui.painter().line_segment([line_start, line_end], stroke);
+            render_scene(&self.current_scene, stroke, &ui);
         });
     }
 }
@@ -92,12 +86,16 @@ fn initialize_scene() -> Scene {
 
 
 
-fn render_scene(scene: &Scene, stroke: Stroke) {
+fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     println!("Rendering scene...");
 
     println!("Length of objects: {}", scene.objects.len());  
 
         for (i, mesh) in scene.objects.iter().enumerate() {
             println!("Mesh {}: {:?}", i, mesh);
+            let line_start = Pos2::new(50.0, 50.0);
+            let line_end = Pos2::new(800.0, 800.0);
+            
+            ui.painter().line_segment([line_start, line_end], stroke);
         }
     }
