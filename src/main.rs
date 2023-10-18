@@ -2,7 +2,7 @@
 
 use eframe::egui;
 use egui::*;
-
+//TODO :: MAKE SURE SCENES ARE PASSED ON FROM MAIN, SO EVERYTHING ACTUALLY WORKS
 struct Scene {
     objects: Vec<Mesh>,
 }
