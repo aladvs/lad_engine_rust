@@ -16,14 +16,6 @@ struct Mesh {
     scale: [f32; 3],
 }
 
-impl Default for Scene {
-    fn default() -> Self {
-        Scene {
-            objects: Vec::new(),
-        }
-    }
-}
-
 
 
 fn main() -> Result<(), eframe::Error> {
@@ -31,28 +23,30 @@ fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions::default();
         let mut content = Content {
         text: String::new(),
-        // Initialize the scene
-        scene: initialize_scene(),
     };
     eframe::run_native(
         "lad engine",
         options,
-        Box::new(|_cc| Box::<Content>::default()),
+        Box::new(|_cc| {
+            let my_scene = create_scene();
+            let my_app = App::from_scene(my_scene);
+            // or my_app = App { scene: my_scene, ... };
+            Box::new(my_app)
+          }
     )
 }
 
 #[derive(Default)]
 struct Content {
     text: String,
-    scene: Scene,
 }
 
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let stroke = Stroke::new(2.0, Color32::WHITE);
         egui::CentralPanel::default().show(ctx, |ui| {
-            println!("Number of objects in scene: {}", self.scene.objects.len());  // Debug print
-            render_scene(&self.scene, stroke);
+            println!("Number of objects in scene: {}", current_scene.objects.len());  // Debug print
+            render_scene(current_scene, stroke);
             let line_start = Pos2::new(50.0, 50.0);
             let line_end = Pos2::new(800.0, 800.0);
             
