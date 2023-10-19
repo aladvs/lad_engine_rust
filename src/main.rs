@@ -84,6 +84,8 @@ impl Default for Scene {
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.predicted_dt);
+        self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
+
       //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -95,6 +97,23 @@ impl eframe::App for Content {
 }
 
 
+
+fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
+    let sin_x = f32::sin(angles[0]);
+    let cos_x = f32::cos(angles[0]);
+    let sin_y = f32::sin(angles[1]);
+    let cos_y = f32::cos(angles[1]);
+    let sin_z = f32::sin(angles[2]);
+    let cos_z = f32::cos(angles[2]);
+
+    let result = [
+        cos_y * (cos_z * vertex.0 - sin_z * vertex.1) - sin_y * vertex.2,
+        cos_x * vertex.1 + sin_x * (sin_y * (cos_z * vertex.0 - sin_z * vertex.1) + cos_y * vertex.2),
+        sin_x * vertex.1 - cos_x * (sin_y * (cos_z * vertex.0 - sin_z * vertex.1) + cos_y * vertex.2),
+    ];
+
+    result
+}
 
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let canvas_width = ui.ctx().screen_rect().width();
@@ -113,30 +132,39 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let b = indices[i + 1] as usize;
             let c = indices[i + 2] as usize;
 
-            let vertex_a = vertices[a];
-            let vertex_b = vertices[b];
-            let vertex_c = vertices[c];
+            let vertex_a = &vertices[a];
+            let vertex_b = &vertices[b];
+            let vertex_c = &vertices[c];
+
+            // Apply the rotation to the vertices using the separate function
+            let rotated_a = apply_rotation(*vertex_a, mesh.rotation);
+            let rotated_b = apply_rotation(*vertex_b, mesh.rotation);
+            let rotated_c = apply_rotation(*vertex_c, mesh.rotation);
 
             // Invert the Y-axis to render upside down
-            let line_start_a = Pos2::new(
-                vertex_a.0 * 100.0 + half_width,
-                canvas_height - vertex_a.1 * 100.0 - half_height,
-            );
-            let line_end_b = Pos2::new(
-                vertex_b.0 * 100.0 + half_width,
-                canvas_height - vertex_b.1 * 100.0 - half_height,
-            );
-            let line_end_c = Pos2::new(
-                vertex_c.0 * 100.0 + half_width,
-                canvas_height - vertex_c.1 * 100.0 - half_height,
-            );
+            let line_start_a = [
+                rotated_a[0] * 100.0 + half_width,
+                canvas_height - rotated_a[1] * 100.0 - half_height,
+            ];
 
-            painter.line_segment([line_start_a, line_end_b], stroke);
-            painter.line_segment([line_end_b, line_end_c], stroke);
-            painter.line_segment([line_end_c, line_start_a], stroke);
+            let line_end_b = [
+                rotated_b[0] * 100.0 + half_width,
+                canvas_height - rotated_b[1] * 100.0 - half_height,
+            ];
+
+            let line_end_c = [
+                rotated_c[0] * 100.0 + half_width,
+                canvas_height - rotated_c[1] * 100.0 - half_height,
+            ];
+
+            painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke);
+            painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke);
+            painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke);
         }
     }
 }
+
+
 
 
 
