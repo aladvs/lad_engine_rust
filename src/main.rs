@@ -47,7 +47,7 @@ struct Content {
 
 impl Default for Scene {
     fn default() -> Self {
-        let input = BufReader::new(File::open("suzanne.obj").expect("AAAA"));
+        let input = BufReader::new(File::open("teapot.obj").expect("AAAA"));
         let dome: Obj = load_obj(input).expect("AAAA");
         
         let mut mesh_vertices = vec![];  // Create an empty vector to store mesh vertices
