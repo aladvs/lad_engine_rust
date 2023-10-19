@@ -2,7 +2,10 @@
 
 use eframe::egui;
 use egui::*;
-use tmf::TMFMesh;
+use std::fs::File;
+use std::io::BufReader;
+use obj::{load_obj, Obj};
+
 
 //TODO :: MAKE SURE SCENES ARE PASSED ON FROM MAIN, SO EVERYTHING ACTUALLY WORKS
 struct Scene {
@@ -44,20 +47,14 @@ struct Content {
 
 impl Default for Scene {
     fn default() -> Self {
-        let mut input = include_bytes!("sphere.obj");
-        let mut input_slice: &[u8] = input;
-        let (mesh, name) = TMFMesh::read_from_obj_one(&mut input_slice).expect("Could not read TMF file!");
-        let obj_vertices = mesh.get_vertices().expect("No vertices!");
-      //  println!("{:#?}", obj_vertices);
-        let vertices: Vec<(f32, f32, f32)> = obj_vertices
-    .iter()
-    .map(|&v| (v.0, v.1, v.2))
-    .collect();
-        let vertex_triangles = mesh.get_vertex_triangles().expect("No vertiex triangle array!");
+      //  let mut input = include_bytes!("sphere.obj");
+        let input = BufReader::new(File::open("sphere.obj").expect("AAAA"));
+        let dome: Obj = load_obj(input).expect("AAAA");
         //let indices: Vec<u32> = vertex_triangles.to_vec();
+        println!("{:#?}", dome.vertices);
 
         let dummy_mesh = Mesh {
-            vertices: vertices.to_vec(),  // dummy vertex
+            vertices: [(0.0,0.0,0.0)].to_vec(),  // dummy vertex
             indices: [0, 0].to_vec(),  // dummy index
             position: [0.0, 0.0, 0.0],
             rotation: [0.0, 0.0, 0.0],
