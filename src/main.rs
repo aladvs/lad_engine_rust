@@ -47,24 +47,36 @@ struct Content {
 
 impl Default for Scene {
     fn default() -> Self {
-      //  let mut input = include_bytes!("sphere.obj");
-        let input = BufReader::new(File::open("sphere.obj").expect("AAAA"));
+        let input = BufReader::new(File::open("suzanne.obj").expect("AAAA"));
         let dome: Obj = load_obj(input).expect("AAAA");
-        //let indices: Vec<u32> = vertex_triangles.to_vec();
-        println!("{:#?}", dome.vertices);
+        
+        let mut mesh_vertices = vec![];  // Create an empty vector to store mesh vertices
+        let mut mesh_indices = vec![];   // Create an empty vector to store mesh indices
+
+        for index in &dome.indices {
+            // Add each vertex index to the mesh indices
+            mesh_indices.push(*index as u32); // Convert to u32 if necessary
+        }
+
+        for vertex in &dome.vertices {
+            // Access the 'position' field to get the vertex coordinates
+            let position = vertex.position;
+            let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
+            mesh_vertices.push(mesh_vertex);
+        }
 
         let dummy_mesh = Mesh {
-            vertices: [(0.0,0.0,0.0)].to_vec(),  // dummy vertex
-            indices: [0, 0].to_vec(),  // dummy index
+            vertices: mesh_vertices,  // Use the converted mesh vertices
+            indices: mesh_indices,   // Use the converted mesh indices
             position: [0.0, 0.0, 0.0],
             rotation: [0.0, 0.0, 0.0],
             scale: [1.0, 1.0, 1.0],
         };
-    
-        println!("Dummy mesh: {:?}", dummy_mesh);  
-    
+
+        println!("Dummy mesh: {:?}", dummy_mesh);
+
         Scene {
-            objects: vec![dummy_mesh], 
+            objects: vec![dummy_mesh],
         }
     }
 }
@@ -73,7 +85,7 @@ impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.predicted_dt);
       //  println!("{}",deltaTime);
-        let stroke = Stroke::new(2.0, Color32::WHITE);
+        let stroke = Stroke::new(0.5, Color32::WHITE);
         egui::CentralPanel::default().show(ctx, |ui| {
             //println!("Number of objects in scene: {}", self.current_scene.objects.len()); 
             render_scene(&self.current_scene, stroke, &ui);
@@ -90,29 +102,42 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let half_width = canvas_width / 2.0;
     let half_height = canvas_height / 2.0;
 
-
     let mut painter = ui.painter();
 
     for mesh in &scene.objects {
         let vertices = &mesh.vertices;
+        let indices = &mesh.indices;
 
-        for (i, start) in vertices.iter().enumerate() {
-            for end in &vertices[i + 1..] {
-                let line_start = Pos2::new(
-                    start.0*100.0 + half_width,
-                    start.1*100.0 + half_height,
-                );
-                let line_end = Pos2::new(
-                    end.0*100.0 + half_width,
-                    end.1*100.0 + half_height,
-                );
+        for i in (0..indices.len()).step_by(3) {
+            let a = indices[i] as usize;
+            let b = indices[i + 1] as usize;
+            let c = indices[i + 2] as usize;
 
-                // Use the stroke method to draw the line segment
-                painter.line_segment([line_start, line_end], stroke);
-            }
+            let vertex_a = vertices[a];
+            let vertex_b = vertices[b];
+            let vertex_c = vertices[c];
+
+            // Invert the Y-axis to render upside down
+            let line_start_a = Pos2::new(
+                vertex_a.0 * 100.0 + half_width,
+                canvas_height - vertex_a.1 * 100.0 - half_height,
+            );
+            let line_end_b = Pos2::new(
+                vertex_b.0 * 100.0 + half_width,
+                canvas_height - vertex_b.1 * 100.0 - half_height,
+            );
+            let line_end_c = Pos2::new(
+                vertex_c.0 * 100.0 + half_width,
+                canvas_height - vertex_c.1 * 100.0 - half_height,
+            );
+
+            painter.line_segment([line_start_a, line_end_b], stroke);
+            painter.line_segment([line_end_b, line_end_c], stroke);
+            painter.line_segment([line_end_c, line_start_a], stroke);
         }
     }
 }
+
 
 
     pub(crate) fn load_icon() -> eframe::IconData {
