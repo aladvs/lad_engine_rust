@@ -10,3 +10,4 @@ eframe = "0.23.0"
 egui = "0.23.0"
 egui_extras = { version = "*", features = ["all_loaders"] }
 image = { version = "0.24", features = ["jpeg", "png"] } # Add the types you want support for
+tmf = {version = "0.2.0", features = ["triangulation"]}

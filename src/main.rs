@@ -2,6 +2,9 @@
 
 use eframe::egui;
 use egui::*;
+use tmf::TMFMesh;
+use std::fs::File;
+
 //TODO :: MAKE SURE SCENES ARE PASSED ON FROM MAIN, SO EVERYTHING ACTUALLY WORKS
 struct Scene {
     objects: Vec<Mesh>,
@@ -9,12 +12,13 @@ struct Scene {
 
 #[derive(Debug)] 
 struct Mesh {
-    vertices: Vec<f64>,
+    vertices: Vec<(f32, f32, f32)>,
     indices: Vec<i32>,
     position: [f32; 3],
     rotation: [f32; 3], 
     scale: [f32; 3],
 }
+
 
 
 
@@ -44,8 +48,17 @@ struct Content {
 
 impl Default for Scene {
     fn default() -> Self {
+        let mut input = include_bytes!("suzanne.obj");
+        let mut input_slice: &[u8] = input;
+        let (mesh, name) = TMFMesh::read_from_obj_one(&mut input_slice).expect("Could not read TMF file!");
+        let obj_vertices = mesh.get_vertices().expect("No vertices!");
+      //  println!("{:#?}", obj_vertices);
+        let vertices: Vec<(f32, f32, f32)> = obj_vertices
+    .iter()
+    .map(|&v| (v.0, v.1, v.2))
+    .collect();
         let dummy_mesh = Mesh {
-            vertices: vec![0.0, 0.0, 0.0],  // dummy vertex
+            vertices: vertices.to_vec(),  // dummy vertex
             indices: vec![0],  // dummy index
             position: [0.0, 0.0, 0.0],
             rotation: [0.0, 0.0, 0.0],
@@ -70,23 +83,6 @@ impl eframe::App for Content {
     }
 }
 
-fn initialize_scene() -> Scene {
-    println!("Initializing scene...");
-
-    let dummy_mesh = Mesh {
-        vertices: vec![0.0, 0.0, 0.0],  // dummy vertex
-        indices: vec![0],  // dummy index
-        position: [0.0, 0.0, 0.0],
-        rotation: [0.0, 0.0, 0.0],
-        scale: [1.0, 1.0, 1.0],
-    };
-
-    println!("Dummy mesh: {:?}", dummy_mesh);  
-
-    Scene {
-        objects: vec![dummy_mesh], 
-    }
-}
 
 
 
