@@ -84,7 +84,7 @@ impl Default for Scene {
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.stable_dt);
-        self.current_scene.objects[0].rotation[2] += 0.6 * deltaTime;
+        self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
        // self.current_scene.objects[0].rotation[0] += 0.6 * deltaTime;
 
       //  println!("{}",deltaTime);
