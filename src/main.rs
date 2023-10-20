@@ -39,15 +39,27 @@ fn main() -> Result<(), eframe::Error> {
     )
 }
 
-#[derive(Default)]
 struct Content {
     text: String,
     current_scene: Scene,
+    speed_slider: (f32, f32, f32),
 }
+
+impl Default for Content {
+    fn default() -> Self {
+        Content {
+            text: String::new(),
+            current_scene: Scene::default(),
+            speed_slider: (0.0, 5.0, 2.0), // Set the default value to 50.0
+        }
+    }
+}
+
+
 
 impl Default for Scene {
     fn default() -> Self {
-        const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("models/teapot.obj");
+        const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("models/suzanne.obj");
         let teapot_obj_bytes = Cursor::new(TEAPOT_OBJ_BYTES);
         let input = BufReader::new(teapot_obj_bytes);
         let dome: Obj = load_obj(input).expect("AAAA");
@@ -86,12 +98,43 @@ impl Default for Scene {
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.stable_dt);
-        self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
+      //  self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
        // self.current_scene.objects[0].rotation[0] += 0.6 * deltaTime;
 
       //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
         egui::CentralPanel::default().show(ctx, |ui| {
+            ui.set_min_width(0.0);
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.add(egui::Slider::new(&mut self.speed_slider.0, 0.0..=100.0));
+                    ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
+                });
+                ui.vertical(|ui| {
+                    ui.add(egui::Slider::new(&mut self.speed_slider.1, 0.0..=100.0));
+                    ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
+                });
+                ui.vertical(|ui| {
+                    ui.add(egui::Slider::new(&mut self.speed_slider.2, 0.0..=100.0));
+                    ui.add(TextEdit::singleline(&mut "Z Rotation Speed").desired_width(110.0));
+                });
+    
+                self.current_scene.objects[0].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
+                self.current_scene.objects[0].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
+                self.current_scene.objects[0].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
+            });
+            ui.horizontal(|ui| {
+                if (ui.button("Reset X Rotation").clicked()) {
+                    self.current_scene.objects[0].rotation[0] = 0.0
+                }
+                if (ui.button("Reset Y Rotation").clicked()) {
+                    self.current_scene.objects[0].rotation[1] = 0.0
+                }
+                if (ui.button("Reset Z Rotation").clicked()) {
+                    self.current_scene.objects[0].rotation[2] = 0.0
+                }
+            });
+
             //println!("Number of objects in scene: {}", self.current_scene.objects.len()); 
             render_scene(&self.current_scene, stroke, &ui);
         });
