@@ -6,8 +6,9 @@ use std::fs::File;
 use std::io::{BufReader, Cursor};
 use obj::{load_obj, Obj};
 
+// TODO !!!!!!!!!!!!!!! ------------>>>>> MAKE UI A DROPDOWN SO IT'S CLEANER
 
-//TODO :: MAKE SURE SCENES ARE PASSED ON FROM MAIN, SO EVERYTHING ACTUALLY WORKS
+
 struct Scene {
     objects: Vec<Mesh>,
 }
@@ -103,6 +104,7 @@ impl eframe::App for Content {
 
       //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.set_min_width(0.0);
             ui.horizontal(|ui| {
