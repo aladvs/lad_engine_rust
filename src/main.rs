@@ -47,7 +47,7 @@ struct Content {
 
 impl Default for Scene {
     fn default() -> Self {
-        const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("teapot.obj");
+        const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("models/teapot.obj");
         let teapot_obj_bytes = Cursor::new(TEAPOT_OBJ_BYTES);
         let input = BufReader::new(teapot_obj_bytes);
         let dome: Obj = load_obj(input).expect("AAAA");
