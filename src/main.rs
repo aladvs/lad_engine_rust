@@ -83,8 +83,9 @@ impl Default for Scene {
 
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let mut deltaTime = ctx.input(|ctx| ctx.predicted_dt);
-        self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
+        let mut deltaTime = ctx.input(|ctx| ctx.stable_dt);
+        self.current_scene.objects[0].rotation[2] += 0.6 * deltaTime;
+       // self.current_scene.objects[0].rotation[0] += 0.6 * deltaTime;
 
       //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
@@ -106,11 +107,22 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
     let sin_z = f32::sin(angles[2]);
     let cos_z = f32::cos(angles[2]);
 
-    let result = [
-        cos_y * (cos_z * vertex.0 - sin_z * vertex.1) - sin_y * vertex.2,
-        cos_x * vertex.1 + sin_x * (sin_y * (cos_z * vertex.0 - sin_z * vertex.1) + cos_y * vertex.2),
-        sin_x * vertex.1 - cos_x * (sin_y * (cos_z * vertex.0 - sin_z * vertex.1) + cos_y * vertex.2),
-    ];
+    let mut result = [0.0, 0.0, 0.0];
+
+    // Apply yaw (Z-axis) rotation
+    result[0] = cos_z * vertex.0 - sin_z * vertex.1;
+    result[1] = sin_z * vertex.0 + cos_z * vertex.1;
+    result[2] = vertex.2;
+
+    // Apply pitch (Y-axis) rotation
+    let temp_x = cos_y * result[0] - sin_y * result[2];
+    result[2] = sin_y * result[0] + cos_y * result[2];
+    result[0] = temp_x;
+
+    // Apply roll (X-axis) rotation
+    let temp_y = cos_x * result[1] - sin_x * result[2];
+    result[2] = sin_x * result[1] + cos_x * result[2];
+    result[1] = temp_y;
 
     result
 }
