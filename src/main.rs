@@ -3,7 +3,7 @@
 use eframe::egui;
 use egui::*;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Cursor};
 use obj::{load_obj, Obj};
 
 
@@ -47,7 +47,9 @@ struct Content {
 
 impl Default for Scene {
     fn default() -> Self {
-        let input = BufReader::new(File::open("teapot.obj").expect("AAAA"));
+        const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("teapot.obj");
+        let teapot_obj_bytes = Cursor::new(TEAPOT_OBJ_BYTES);
+        let input = BufReader::new(teapot_obj_bytes);
         let dome: Obj = load_obj(input).expect("AAAA");
         
         let mut mesh_vertices = vec![];  // Create an empty vector to store mesh vertices
