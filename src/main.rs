@@ -51,7 +51,7 @@ impl Default for Content {
         Content {
             text: String::new(),
             current_scene: Scene::default(),
-            speed_slider: (0.0, 5.0, 2.0), // Set the default value to 50.0
+            speed_slider: (0.0, 15.0, 0.0), // Set the default value to 50.0
         }
     }
 }
@@ -99,46 +99,29 @@ impl Default for Scene {
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.stable_dt);
-      //  self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
+       // self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
        // self.current_scene.objects[0].rotation[0] += 0.6 * deltaTime;
 
       //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.set_min_width(0.0);
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    ui.add(egui::Slider::new(&mut self.speed_slider.0, 0.0..=100.0));
-                    ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
-                });
-                ui.vertical(|ui| {
-                    ui.add(egui::Slider::new(&mut self.speed_slider.1, 0.0..=100.0));
-                    ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
-                });
-                ui.vertical(|ui| {
-                    ui.add(egui::Slider::new(&mut self.speed_slider.2, 0.0..=100.0));
-                    ui.add(TextEdit::singleline(&mut "Z Rotation Speed").desired_width(110.0));
-                });
-    
-                self.current_scene.objects[0].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
-                self.current_scene.objects[0].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
-                self.current_scene.objects[0].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
+            render_scene(&self.current_scene, stroke, &ui);
+
+
+            Frame::popup(ui.style())
+            .stroke(Stroke::NONE)
+            .show(ui, |ui| {
+                ui.set_max_width(170.0);
+                CollapsingHeader::new("Settings")
+                .show(ui, |ui| settings_menu(ui, self, deltaTime))
             });
-            ui.horizontal(|ui| {
-                if (ui.button("Reset X Rotation").clicked()) {
-                    self.current_scene.objects[0].rotation[0] = 0.0
-                }
-                if (ui.button("Reset Y Rotation").clicked()) {
-                    self.current_scene.objects[0].rotation[1] = 0.0
-                }
-                if (ui.button("Reset Z Rotation").clicked()) {
-                    self.current_scene.objects[0].rotation[2] = 0.0
-                }
-            });
+            self.current_scene.objects[0].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
+            self.current_scene.objects[0].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
+            self.current_scene.objects[0].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
+            //rotation_ui(ui, self, deltaTime);
 
             //println!("Number of objects in scene: {}", self.current_scene.objects.len()); 
-            render_scene(&self.current_scene, stroke, &ui);
         });
         ctx.request_repaint();
     }
@@ -224,6 +207,57 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 }
 
 
+fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    gerneral_settings(ui, reference, deltaTime);
+    ui.add_space(10.0);
+    ui.separator();
+    ui.add(TextEdit::singleline(&mut "Rotation Settings:").desired_width(110.0));
+    ui.add_space(4.0);
+    rotation_ui(ui, reference, deltaTime);
+}
+
+fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.set_min_width(0.0);
+    ui.add(TextEdit::singleline(&mut "Placeholder").desired_width(110.0));
+}
+
+fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.set_min_width(0.0);
+  //  ui.horizontal(|ui| {
+        ui.vertical(|ui| {
+            ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
+
+            ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
+
+            if (ui.button("Reset").clicked()) {
+                reference.current_scene.objects[0].rotation[0] = 0.0;
+                reference.speed_slider.0 = 0.0
+            }
+        });
+
+        ui.vertical(|ui| {
+            ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
+            ui.add(egui::Slider::new(&mut reference.speed_slider.1, 0.0..=100.0));
+
+            if (ui.button("Reset").clicked()) {
+                reference.current_scene.objects[0].rotation[1] = 0.0;
+                reference.speed_slider.1 = 0.0
+            }
+
+        });
+        ui.vertical(|ui| {
+            ui.add(TextEdit::singleline(&mut "Z Rotation Speed").desired_width(110.0));
+            ui.add(egui::Slider::new(&mut reference.speed_slider.2, 0.0..=100.0));
+
+            if (ui.button("Reset").clicked()) {
+                reference.current_scene.objects[0].rotation[2] = 0.0;
+                reference.speed_slider.2 = 0.0
+            }
+        });
+   // });
+   ui.add_space(10.0);
+
+}
 
 
 
