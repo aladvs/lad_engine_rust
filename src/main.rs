@@ -6,7 +6,6 @@ use std::fs::File;
 use std::io::{BufReader, Cursor};
 use obj::{load_obj, Obj};
 
-// TODO !!!!!!!!!!!!!!! ------------>>>>> MAKE UI A DROPDOWN SO IT'S CLEANER
 
 
 struct Scene {
@@ -51,7 +50,7 @@ impl Default for Content {
         Content {
             text: String::new(),
             current_scene: Scene::default(),
-            speed_slider: (0.0, 15.0, 0.0), // Set the default value to 50.0
+            speed_slider: (0.0, 0.0, 0.0), // Set the default value to 50.0
         }
     }
 }
@@ -199,13 +198,42 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 canvas_height - rotated_c[1] * 100.0 - half_height,
             ];
 
+            let stroke2 = Stroke::new(0.5, value_to_color(rotated_c[2]));
             painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke);
             painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke);
             painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke);
+
+
+            let points = vec![
+                Pos2::new(line_start_a[0], line_start_a[1]),
+                Pos2::new(line_end_b[0], line_end_b[1]),
+                Pos2::new(line_end_c[0], line_end_c[1])
+                 ];
+           
+            let shape = Shape::convex_polygon(points, Color32::TRANSPARENT, stroke);
+            painter.add(shape);
+       //    println!("{:#?}", points);
+           //println!("{:#?}", vertex_c.2.abs());
+           //println!("{:#?}", value_to_color(vertex_c.2));
+
+            
+           // let shape = Shape::convex_polygon(points, value_to_color(rotated_c[2]), stroke);
+           //painter.add(shape);
+            //painter.add(egui::Shape::Mesh);
         }
     }
 }
 
+fn value_to_color (value: f32) -> Color32{
+let clamped_value = value.clamp(-1.0, 1.0);
+let interpolation_factor = 1.0 - (clamped_value+ 1.0) / 2.0;
+
+let red = (interpolation_factor * 255.0) as u8;
+let green = (interpolation_factor * 255.0) as u8;
+let blue = (interpolation_factor * 255.0) as u8;
+
+Color32::from_rgb(red, green, blue)
+}
 
 fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     gerneral_settings(ui, reference, deltaTime);
