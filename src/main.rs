@@ -302,8 +302,8 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             Pos2::new(line_end_b[0], line_end_b[1]),
             Pos2::new(line_end_c[0], line_end_c[1]),
         ];
-        let stroke_black = Stroke::new(0.5, Color32::BLACK);
-        let shape = Shape::convex_polygon(points, value_to_color(posed_c[2]), stroke_black);
+        let stroke_black = Stroke::new(0.5, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0));
+        let shape = Shape::convex_polygon(points, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0), stroke_black);
         painter.add(shape);
     }
 }
