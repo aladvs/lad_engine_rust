@@ -181,8 +181,6 @@ fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) 
     ]
 }
 
-
-
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let canvas_width = ui.ctx().screen_rect().width();
     let canvas_height = ui.ctx().screen_rect().height();
@@ -191,9 +189,9 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 
     let painter = ui.painter();
     
-    let mut triangles_with_depth: Vec<(usize, usize, usize, f32)> = Vec::new();
+    let mut triangles_with_depth: Vec<(usize, usize, usize, f32, usize)> = Vec::new();
 
-    for mesh in &scene.objects {
+    for (object_index, mesh) in scene.objects.iter().enumerate() {
         let vertices = &mesh.vertices;
         let indices = &mesh.indices;
 
@@ -230,49 +228,51 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             ];
 
             // Backface Culling: Skip back-facing triangles
+            // KEEP COMMENTED, DOESNT WORK
            // let normal = calculate_normal(posed_a, posed_b, posed_c);
             //if normal[2] > 0.0 {
                 // Normal points away from the camera, so it's a front face
             //    continue;
             //}
             
+           // let depth = (posed_a[2] + posed_b[2] + posed_c[2]) / 3.0;
+           let depth = -(posed_a[2] + posed_b[2] + posed_c[2]) / 3.0;
 
-            let depth = (posed_a[2] + posed_b[2] + posed_c[2]) / 3.0;
-
-            triangles_with_depth.push((a, b, c, depth));
+            triangles_with_depth.push((a, b, c, depth, object_index));
         }
     }
 
-    // Sort triangles by depth
-    triangles_with_depth.sort_by(|a, b| a.3.partial_cmp(&b.3).unwrap_or(std::cmp::Ordering::Equal));
+    // Sort triangles by depth in descending order
+    triangles_with_depth.sort_by(|a, b| b.3.partial_cmp(&a.3).unwrap_or(std::cmp::Ordering::Equal));
 
-    for (a, b, c, _) in triangles_with_depth {
-        let vertices = &scene.objects[0].vertices;
+    for (a, b, c, _, object_index) in triangles_with_depth {
+        let mesh = &scene.objects[object_index];
+        let vertices = &mesh.vertices;
         let vertex_a = &vertices[a];
         let vertex_b = &vertices[b];
         let vertex_c = &vertices[c];
 
         // Apply the rotation to the vertices using the separate function
-        let rotated_a = apply_rotation(*vertex_a, scene.objects[0].rotation);
-        let rotated_b = apply_rotation(*vertex_b, scene.objects[0].rotation);
-        let rotated_c = apply_rotation(*vertex_c, scene.objects[0].rotation);
+        let rotated_a = apply_rotation(*vertex_a, mesh.rotation);
+        let rotated_b = apply_rotation(*vertex_b, mesh.rotation);
+        let rotated_c = apply_rotation(*vertex_c, mesh.rotation);
 
         let posed_a = [
-            rotated_a[0] + &scene.objects[0].position[0],
-            rotated_a[1] + &scene.objects[0].position[1],
-            rotated_a[2] + &scene.objects[0].position[2],
+            rotated_a[0] + &mesh.position[0],
+            rotated_a[1] + &mesh.position[1],
+            rotated_a[2] + &mesh.position[2],
         ];
 
         let posed_b = [
-            rotated_b[0] + &scene.objects[0].position[0],
-            rotated_b[1] + &scene.objects[0].position[1],
-            rotated_b[2] + &scene.objects[0].position[2],
+            rotated_b[0] + &mesh.position[0],
+            rotated_b[1] + &mesh.position[1],
+            rotated_b[2] + &mesh.position[2],
         ];
 
         let posed_c = [
-            rotated_c[0] + &scene.objects[0].position[0],
-            rotated_c[1] + &scene.objects[0].position[1],
-            rotated_c[2] + &scene.objects[0].position[2],
+            rotated_c[0] + &mesh.position[0],
+            rotated_c[1] + &mesh.position[1],
+            rotated_c[2] + &mesh.position[2],
         ];
 
         // Invert the Y-axis to render upside down
@@ -304,6 +304,8 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 
 
 
+
+
 fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
     // Clamp the value to the specified range
     let clamped_value = value.clamp(min_value, max_value);
@@ -317,6 +319,7 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
     = 50.0 as u8;
     let green
     = (interpolation_factor * 255.0) as u8;
+//= (255.0 - interpolation_factor * 255.0) as u8;
 //     = 0.0 as u8;
     let blue
 //     = (interpolation_factor * 255.0) as u8;
