@@ -158,6 +158,37 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
     result
 }
 
+fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
+    let edge1 = [
+        vertex_b[0] - vertex_a[0],
+        vertex_b[1] - vertex_a[1],
+        vertex_b[2] - vertex_a[2],
+    ];
+    
+    let edge2 = [
+        vertex_c[0] - vertex_a[0],
+        vertex_c[1] - vertex_a[1],
+        vertex_c[2] - vertex_a[2],
+    ];
+    
+    // Calculate the cross product of the two edges to get the normal
+    let normal = [
+        edge1[1] * edge2[2] - edge1[2] * edge2[1],
+        edge1[2] * edge2[0] - edge1[0] * edge2[2],
+        edge1[0] * edge2[1] - edge1[1] * edge2[0],
+    ];
+    
+    // Normalize the normal
+    let length = (normal[0].powi(2) + normal[1].powi(2) + normal[2].powi(2)).sqrt();
+    
+    [
+        normal[0] / length,
+        normal[1] / length,
+        normal[2] / length,
+    ]
+}
+
+
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let canvas_width = ui.ctx().screen_rect().width();
     let canvas_height = ui.ctx().screen_rect().height();
@@ -165,6 +196,8 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let half_height = canvas_height / 2.0;
 
     let mut painter = ui.painter();
+    
+    let mut triangles_with_depth: Vec<(usize, usize, usize, f32)> = Vec::new();
 
     for mesh in &scene.objects {
         let vertices = &mesh.vertices;
@@ -202,56 +235,88 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 rotated_c[2] + &mesh.position[2],
             ];
 
-            // Invert the Y-axis to render upside down
-            let line_start_a = [
-                posed_a[0] * 100.0 + half_width,
-                canvas_height - posed_a[1] * 100.0 - half_height,
-            ];
-
-            let line_end_b = [
-                posed_b[0] * 100.0 + half_width,
-                canvas_height - posed_b[1] * 100.0 - half_height,
-            ];
-
-            let line_end_c = [
-                posed_c[0] * 100.0 + half_width,
-                canvas_height - posed_c[1] * 100.0 - half_height,
-            ];
-
-        //    let stroke2 = Stroke::new(0.5, value_to_color(posed_c[2]));
-        //    painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke2);
-        //    painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke2);
-        //    painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke2);
-
-
-             let points = vec![
-                Pos2::new(line_start_a[0], line_start_a[1]),
-                Pos2::new(line_end_b[0], line_end_b[1]),
-                Pos2::new(line_end_c[0], line_end_c[1])
-                 ];
-           
-            let shape = Shape::convex_polygon(points, Color32::WHITE, stroke);
-            painter.add(shape);
-       
-       //    println!("{:#?}", points);
-           //println!("{:#?}", vertex_c.2.abs());
-           //println!("{:#?}", value_to_color(vertex_c.2));
-
+            // Backface Culling: Skip back-facing triangles
+            let normal = calculate_normal(posed_a, posed_b, posed_c);
+            if normal[2] < 0.0 {
+                // Normal points away from the camera, so it's a front face
+                continue;
+            }
             
-           // let shape = Shape::convex_polygon(points, value_to_color(rotated_c[2]), stroke);
-           //painter.add(shape);
-            //painter.add(egui::Shape::Mesh);
+
+            let depth = (posed_a[2] + posed_b[2] + posed_c[2]) / 3.0;
+
+            triangles_with_depth.push((a, b, c, depth));
         }
     }
+
+    // Sort triangles by depth
+    triangles_with_depth.sort_by(|a, b| a.3.partial_cmp(&b.3).unwrap_or(std::cmp::Ordering::Equal));
+
+    for (a, b, c, _) in triangles_with_depth {
+        let vertices = &scene.objects[0].vertices;
+        let vertex_a = &vertices[a];
+        let vertex_b = &vertices[b];
+        let vertex_c = &vertices[c];
+
+        // Apply the rotation to the vertices using the separate function
+        let rotated_a = apply_rotation(*vertex_a, scene.objects[0].rotation);
+        let rotated_b = apply_rotation(*vertex_b, scene.objects[0].rotation);
+        let rotated_c = apply_rotation(*vertex_c, scene.objects[0].rotation);
+
+        let posed_a = [
+            rotated_a[0] + &scene.objects[0].position[0],
+            rotated_a[1] + &scene.objects[0].position[1],
+            rotated_a[2] + &scene.objects[0].position[2],
+        ];
+
+        let posed_b = [
+            rotated_b[0] + &scene.objects[0].position[0],
+            rotated_b[1] + &scene.objects[0].position[1],
+            rotated_b[2] + &scene.objects[0].position[2],
+        ];
+
+        let posed_c = [
+            rotated_c[0] + &scene.objects[0].position[0],
+            rotated_c[1] + &scene.objects[0].position[1],
+            rotated_c[2] + &scene.objects[0].position[2],
+        ];
+
+        // Invert the Y-axis to render upside down
+        let line_start_a = [
+            posed_a[0] * 100.0 + half_width,
+            canvas_height - posed_a[1] * 100.0 - half_height,
+        ];
+
+        let line_end_b = [
+            posed_b[0] * 100.0 + half_width,
+            canvas_height - posed_b[1] * 100.0 - half_height,
+        ];
+
+        let line_end_c = [
+            posed_c[0] * 100.0 + half_width,
+            canvas_height - posed_c[1] * 100.0 - half_height,
+        ];
+
+        let points = vec![
+            Pos2::new(line_start_a[0], line_start_a[1]),
+            Pos2::new(line_end_b[0], line_end_b[1]),
+            Pos2::new(line_end_c[0], line_end_c[1]),
+        ];
+        let stroke_black = Stroke::new(0.5, Color32::BLACK);
+        let shape = Shape::convex_polygon(points, value_to_color(posed_c[2]), stroke_black);
+        painter.add(shape);
+    }
 }
+
+
 
 fn value_to_color (value: f32) -> Color32{
 let clamped_value = value.clamp(-1.0, 1.0);
 let interpolation_factor = 1.0 - (clamped_value+ 1.0) / 2.0;
 
-let red = (interpolation_factor * 255.0) as u8;
-let green = (interpolation_factor * 255.0) as u8;
-let blue = (interpolation_factor * 255.0) as u8;
+let red = (255.0- interpolation_factor * 255.0) as u8;
+let green = (255.0 - interpolation_factor * 255.0) as u8;
+let blue = (255.0 - interpolation_factor * 255.0) as u8;
 
 Color32::from_rgb(red, green, blue)
 }
