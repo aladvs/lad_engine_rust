@@ -182,20 +182,38 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let rotated_b = apply_rotation(*vertex_b, mesh.rotation);
             let rotated_c = apply_rotation(*vertex_c, mesh.rotation);
 
+            let posed_a = [
+                rotated_a[0] + &mesh.position[0],
+                rotated_a[1] + &mesh.position[1],
+                rotated_a[2] + &mesh.position[2],
+            ];
+
+            let posed_b = [
+                rotated_b[0] + &mesh.position[0],
+                rotated_b[1] + &mesh.position[1],
+                rotated_b[2] + &mesh.position[2],
+            ];
+
+            let posed_c = [
+                rotated_c[0] + &mesh.position[0],
+                rotated_c[1] + &mesh.position[1],
+                rotated_c[2] + &mesh.position[2],
+            ];
+
             // Invert the Y-axis to render upside down
             let line_start_a = [
-                rotated_a[0] * 100.0 + half_width,
-                canvas_height - rotated_a[1] * 100.0 - half_height,
+                posed_a[0] * 100.0 + half_width,
+                canvas_height - posed_a[1] * 100.0 - half_height,
             ];
 
             let line_end_b = [
-                rotated_b[0] * 100.0 + half_width,
-                canvas_height - rotated_b[1] * 100.0 - half_height,
+                posed_b[0] * 100.0 + half_width,
+                canvas_height - posed_b[1] * 100.0 - half_height,
             ];
 
             let line_end_c = [
-                rotated_c[0] * 100.0 + half_width,
-                canvas_height - rotated_c[1] * 100.0 - half_height,
+                posed_c[0] * 100.0 + half_width,
+                canvas_height - posed_c[1] * 100.0 - half_height,
             ];
 
             let stroke2 = Stroke::new(0.5, value_to_color(rotated_c[2]));
@@ -204,7 +222,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke);
 
 
-            let points = vec![
+     /*        let points = vec![
                 Pos2::new(line_start_a[0], line_start_a[1]),
                 Pos2::new(line_end_b[0], line_end_b[1]),
                 Pos2::new(line_end_c[0], line_end_c[1])
@@ -212,6 +230,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
            
             let shape = Shape::convex_polygon(points, Color32::TRANSPARENT, stroke);
             painter.add(shape);
+       */
        //    println!("{:#?}", points);
            //println!("{:#?}", vertex_c.2.abs());
            //println!("{:#?}", value_to_color(vertex_c.2));
