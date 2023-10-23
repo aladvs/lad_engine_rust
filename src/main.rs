@@ -218,21 +218,21 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 canvas_height - posed_c[1] * 100.0 - half_height,
             ];
 
-            let stroke2 = Stroke::new(0.5, value_to_color(posed_c[2]));
-            painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke2);
-            painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke2);
-            painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke2);
+        //    let stroke2 = Stroke::new(0.5, value_to_color(posed_c[2]));
+        //    painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke2);
+        //    painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke2);
+        //    painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke2);
 
 
-     /*        let points = vec![
+             let points = vec![
                 Pos2::new(line_start_a[0], line_start_a[1]),
                 Pos2::new(line_end_b[0], line_end_b[1]),
                 Pos2::new(line_end_c[0], line_end_c[1])
                  ];
            
-            let shape = Shape::convex_polygon(points, Color32::TRANSPARENT, stroke);
+            let shape = Shape::convex_polygon(points, Color32::WHITE, stroke);
             painter.add(shape);
-       */
+       
        //    println!("{:#?}", points);
            //println!("{:#?}", vertex_c.2.abs());
            //println!("{:#?}", value_to_color(vertex_c.2));

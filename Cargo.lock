@@ -751,8 +751,7 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 [[package]]
 name = "ecolor"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfdf4e52dbbb615cfd30cf5a5265335c217b5fd8d669593cea74a517d9c605af"
+source = "git+https://github.com/aladvs/egui#e2558fc8d61e90ce36d80abb18cb0f3f56a42a3b"
 dependencies = [
  "bytemuck",
  "serde",
@@ -791,8 +790,7 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bd69fed5fcf4fbb8225b24e80ea6193b61e17a625db105ef0c4d71dde6eb8b7"
+source = "git+https://github.com/aladvs/egui#e2558fc8d61e90ce36d80abb18cb0f3f56a42a3b"
 dependencies = [
  "accesskit",
  "ahash",
@@ -875,8 +873,7 @@ checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 [[package]]
 name = "emath"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ef2b29de53074e575c18b694167ccbe6e5191f7b25fe65175a0d905a32eeec0"
+source = "git+https://github.com/aladvs/egui#e2558fc8d61e90ce36d80abb18cb0f3f56a42a3b"
 dependencies = [
  "bytemuck",
  "serde",
@@ -938,8 +935,7 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58067b840d009143934d91d8dcb8ded054d8301d7c11a517ace0a99bb1e1595e"
+source = "git+https://github.com/aladvs/egui#e2558fc8d61e90ce36d80abb18cb0f3f56a42a3b"
 dependencies = [
  "ab_glyph",
  "ahash",
