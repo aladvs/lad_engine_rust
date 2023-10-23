@@ -281,20 +281,49 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             rotated_c[2] + &mesh.position[2],
         ];
 
-        // Invert the Y-axis to render upside down
+        // Adjust the depth factor to reduce the effect
+        let depth_factor = -0.1; // You can adjust this value
+        let depth_a = posed_a[2] * depth_factor;
+        let depth_b = posed_b[2] * depth_factor;
+        let depth_c = posed_c[2] * depth_factor;
+    if depth_a > -1.0 && depth_b > -1.0 && depth_c > -1.0 {
+        // Apply perspective transformation to the vertices just before drawing
+        let perspective_factor_a = 1.0 / (1.0 + depth_a);
+        let perspective_factor_b = 1.0 / (1.0 + depth_b);
+        let perspective_factor_c = 1.0 / (1.0 + depth_c);
+
+        let perspective_a = [
+            posed_a[0] * perspective_factor_a,
+            posed_a[1] * perspective_factor_a,
+            posed_a[2],
+        ];
+
+        let perspective_b = [
+            posed_b[0] * perspective_factor_b,
+            posed_b[1] * perspective_factor_b,
+            posed_b[2],
+        ];
+
+        let perspective_c = [
+            posed_c[0] * perspective_factor_c,
+            posed_c[1] * perspective_factor_c,
+            posed_c[2],
+        ];
+
+            // Invert the Y-axis to render upside down
         let line_start_a = [
-            posed_a[0] * 100.0 + half_width,
-            canvas_height - posed_a[1] * 100.0 - half_height,
+            perspective_a[0] * 100.0 + half_width,
+            canvas_height - perspective_a[1] * 100.0 - half_height,
         ];
 
         let line_end_b = [
-            posed_b[0] * 100.0 + half_width,
-            canvas_height - posed_b[1] * 100.0 - half_height,
+            perspective_b[0] * 100.0 + half_width,
+            canvas_height - perspective_b[1] * 100.0 - half_height,
         ];
 
         let line_end_c = [
-            posed_c[0] * 100.0 + half_width,
-            canvas_height - posed_c[1] * 100.0 - half_height,
+            perspective_c[0] * 100.0 + half_width,
+            canvas_height - perspective_c[1] * 100.0 - half_height,
         ];
 
         let points = vec![
@@ -302,9 +331,13 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             Pos2::new(line_end_b[0], line_end_b[1]),
             Pos2::new(line_end_c[0], line_end_c[1]),
         ];
-        let stroke_black = Stroke::new(0.5, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0));
+        //let stroke_black = Stroke::new(0.5, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0));
+        let stroke_black = Stroke::new(0.5, Color32::BLACK);
         let shape = Shape::convex_polygon(points, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0), stroke_black);
-        painter.add(shape);
+       // println!("{}", depth_a);
+
+            painter.add(shape);
+    }
     }
 }
 
