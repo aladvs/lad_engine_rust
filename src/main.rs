@@ -159,34 +159,28 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
 }
 
 fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
-    let edge1 = [
-        vertex_b[0] - vertex_a[0],
-        vertex_b[1] - vertex_a[1],
-        vertex_b[2] - vertex_a[2],
-    ];
-    
-    let edge2 = [
-        vertex_c[0] - vertex_a[0],
-        vertex_c[1] - vertex_a[1],
-        vertex_c[2] - vertex_a[2],
-    ];
-    
-    // Calculate the cross product of the two edges to get the normal
+    // Calculate the vectors for two edges of the triangle
+    let edge1 = [vertex_b[0] - vertex_a[0], vertex_b[1] - vertex_a[1], vertex_b[2] - vertex_a[2]];
+    let edge2 = [vertex_c[0] - vertex_a[0], vertex_c[1] - vertex_a[1], vertex_c[2] - vertex_a[2]];
+
+    // Calculate the normal using the right-hand rule (cross product)
     let normal = [
-        edge1[1] * edge2[2] - edge1[2] * edge2[1],
-        edge1[2] * edge2[0] - edge1[0] * edge2[2],
-        edge1[0] * edge2[1] - edge1[1] * edge2[0],
+        edge2[1] * edge1[2] - edge2[2] * edge1[1],
+        edge2[2] * edge1[0] - edge2[0] * edge1[2],
+        edge2[0] * edge1[1] - edge2[1] * edge1[0],
     ];
     
+
     // Normalize the normal
     let length = (normal[0].powi(2) + normal[1].powi(2) + normal[2].powi(2)).sqrt();
-    
+
     [
         normal[0] / length,
         normal[1] / length,
         normal[2] / length,
     ]
 }
+
 
 
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
@@ -236,11 +230,11 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             ];
 
             // Backface Culling: Skip back-facing triangles
-            let normal = calculate_normal(posed_a, posed_b, posed_c);
-            if normal[2] < 0.0 {
+           // let normal = calculate_normal(posed_a, posed_b, posed_c);
+            //if normal[2] > 0.0 {
                 // Normal points away from the camera, so it's a front face
-                continue;
-            }
+            //    continue;
+            //}
             
 
             let depth = (posed_a[2] + posed_b[2] + posed_c[2]) / 3.0;
