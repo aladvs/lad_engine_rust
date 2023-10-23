@@ -189,7 +189,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let half_width = canvas_width / 2.0;
     let half_height = canvas_height / 2.0;
 
-    let mut painter = ui.painter();
+    let painter = ui.painter();
     
     let mut triangles_with_depth: Vec<(usize, usize, usize, f32)> = Vec::new();
 
