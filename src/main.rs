@@ -43,6 +43,7 @@ struct Content {
     text: String,
     current_scene: Scene,
     speed_slider: (f32, f32, f32),
+    pos_slider: (f32, f32, f32),
 }
 
 impl Default for Content {
@@ -51,6 +52,7 @@ impl Default for Content {
             text: String::new(),
             current_scene: Scene::default(),
             speed_slider: (0.0, 0.0, 0.0), // Set the default value to 50.0
+            pos_slider: (0.0, 0.0, 0.0),
         }
     }
 }
@@ -216,10 +218,10 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 canvas_height - posed_c[1] * 100.0 - half_height,
             ];
 
-            let stroke2 = Stroke::new(0.5, value_to_color(rotated_c[2]));
-            painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke);
-            painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke);
-            painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke);
+            let stroke2 = Stroke::new(0.5, value_to_color(posed_c[2]));
+            painter.line_segment([Pos2::new(line_start_a[0], line_start_a[1]), Pos2::new(line_end_b[0], line_end_b[1])], stroke2);
+            painter.line_segment([Pos2::new(line_end_b[0], line_end_b[1]), Pos2::new(line_end_c[0], line_end_c[1])], stroke2);
+            painter.line_segment([Pos2::new(line_end_c[0], line_end_c[1]), Pos2::new(line_start_a[0], line_start_a[1])], stroke2);
 
 
      /*        let points = vec![
@@ -255,12 +257,23 @@ Color32::from_rgb(red, green, blue)
 }
 
 fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    
     gerneral_settings(ui, reference, deltaTime);
-    ui.add_space(10.0);
-    ui.separator();
+    
+        ui.add_space(10.0);
+        ui.separator();
+
     ui.add(TextEdit::singleline(&mut "Rotation Settings:").desired_width(110.0));
-    ui.add_space(4.0);
+    
+        ui.add_space(4.0);
+
     rotation_ui(ui, reference, deltaTime);
+
+        ui.add_space(10.0);
+        ui.separator();
+        ui.add_space(4.0);
+    
+    transform_ui(ui, reference, deltaTime);
 }
 
 fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
@@ -306,6 +319,28 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
 }
 
+fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.set_min_width(0.0);
+    //  ui.horizontal(|ui| {
+          ui.vertical(|ui| {
+              ui.add(TextEdit::singleline(&mut "X").desired_width(110.0));
+              ui.add(egui::Slider::new(&mut reference.pos_slider.0, -5.0..=5.0).clamp_to_range(false));
+          });
+  
+          ui.vertical(|ui| {
+              ui.add(TextEdit::singleline(&mut "Y").desired_width(110.0));
+              ui.add(egui::Slider::new(&mut reference.pos_slider.1, -5.0..=5.0).clamp_to_range(false));
+  
+  
+          });
+          ui.vertical(|ui| {
+              ui.add(TextEdit::singleline(&mut "Z").desired_width(110.0));
+              ui.add(egui::Slider::new(&mut reference.pos_slider.2, -5.0..=5.0).clamp_to_range(false));
+          });
+          reference.current_scene.objects[0].position[0] = reference.pos_slider.0;
+          reference.current_scene.objects[0].position[1] = reference.pos_slider.1;
+          reference.current_scene.objects[0].position[2] = reference.pos_slider.2;
+}
 
 
     pub(crate) fn load_icon() -> eframe::IconData {
