@@ -62,6 +62,7 @@ impl Default for Content {
 impl Default for Scene {
     fn default() -> Self {
         const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("models/suzanne.obj");
+
         let teapot_obj_bytes = Cursor::new(TEAPOT_OBJ_BYTES);
         let input = BufReader::new(teapot_obj_bytes);
         let dome: Obj = load_obj(input).expect("AAAA");
@@ -88,7 +89,6 @@ impl Default for Scene {
             rotation: [0.0, 0.0, 0.0],
             scale: [1.0, 1.0, 1.0],
         };
-
         println!("Dummy mesh: {:?}", dummy_mesh);
 
         Scene {
@@ -140,23 +140,24 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
 
     let mut result = [0.0, 0.0, 0.0];
 
-    // Apply yaw (Z-axis) rotation
-    result[0] = cos_z * vertex.0 - sin_z * vertex.1;
-    result[1] = sin_z * vertex.0 + cos_z * vertex.1;
-    result[2] = vertex.2;
+    // Apply rotation around X-axis
+    result[0] = vertex.0;
+    result[1] = cos_x * vertex.1 - sin_x * vertex.2;
+    result[2] = sin_x * vertex.1 + cos_x * vertex.2;
 
-    // Apply pitch (Y-axis) rotation
-    let temp_x = cos_y * result[0] - sin_y * result[2];
-    result[2] = sin_y * result[0] + cos_y * result[2];
+    // Apply rotation around Y-axis
+    let temp_x = cos_y * result[0] + sin_y * result[2];
+    result[2] = -sin_y * result[0] + cos_y * result[2];
     result[0] = temp_x;
 
-    // Apply roll (X-axis) rotation
-    let temp_y = cos_x * result[1] - sin_x * result[2];
-    result[2] = sin_x * result[1] + cos_x * result[2];
-    result[1] = temp_y;
+    // Apply rotation around Z-axis
+    let temp_x = cos_z * result[0] - sin_z * result[1];
+    result[1] = sin_z * result[0] + cos_z * result[1];
+    result[0] = temp_x;
 
     result
 }
+
 
 fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
     // Calculate the vectors for two edges of the triangle
