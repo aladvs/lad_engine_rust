@@ -61,40 +61,45 @@ impl Default for Content {
 
 impl Default for Scene {
     fn default() -> Self {
-        const TEAPOT_OBJ_BYTES: &'static [u8] = include_bytes!("models/suzanne.obj");
-
-        let teapot_obj_bytes = Cursor::new(TEAPOT_OBJ_BYTES);
-        let input = BufReader::new(teapot_obj_bytes);
-        let dome: Obj = load_obj(input).expect("AAAA");
-        
-        let mut mesh_vertices = vec![];  // Create an empty vector to store mesh vertices
-        let mut mesh_indices = vec![];   // Create an empty vector to store mesh indices
-
-        for index in &dome.indices {
-            // Add each vertex index to the mesh indices
-            mesh_indices.push(*index as u32); // Convert to u32 if necessary
-        }
-
-        for vertex in &dome.vertices {
-            // Access the 'position' field to get the vertex coordinates
-            let position = vertex.position;
-            let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
-            mesh_vertices.push(mesh_vertex);
-        }
-
-        let dummy_mesh = Mesh {
-            vertices: mesh_vertices,  // Use the converted mesh vertices
-            indices: mesh_indices,   // Use the converted mesh indices
-            position: [0.0, 0.0, 0.0],
-            rotation: [0.0, 0.0, 0.0],
-            scale: [1.0, 1.0, 1.0],
-        };
-        println!("Dummy mesh: {:?}", dummy_mesh);
-
         Scene {
-            objects: vec![dummy_mesh],
+            objects: vec![
+                obj_to_mesh(include_bytes!("models/suzanne.obj")), 
+                obj_to_mesh(include_bytes!("models/mario.obj"))],
         }
     }
+}
+
+fn obj_to_mesh(bytes:&'static [u8]) -> Mesh {
+    let OBJ_BYTES: &'static [u8] = bytes;
+
+    let obj_bytes = Cursor::new(OBJ_BYTES);
+    let input = BufReader::new(obj_bytes);
+    let mesh: Obj = load_obj(input).expect("AAAA");
+    
+    let mut mesh_vertices = vec![];  // Create an empty vector to store mesh vertices
+    let mut mesh_indices = vec![];   // Create an empty vector to store mesh indices
+
+    for index in &mesh.indices {
+        // Add each vertex index to the mesh indices
+        mesh_indices.push(*index as u32); // Convert to u32 if necessary
+    }
+
+    for vertex in &mesh.vertices {
+        // Access the 'position' field to get the vertex coordinates
+        let position = vertex.position;
+        let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
+        mesh_vertices.push(mesh_vertex);
+    }
+
+    let output = Mesh {
+        vertices: mesh_vertices,  // Use the converted mesh vertices
+        indices: mesh_indices,   // Use the converted mesh indices
+        position: [0.0, 0.0, 0.0],
+        rotation: [0.0, 0.0, 0.0],
+        scale: [1.0, 1.0, 1.0],
+    };
+
+    output
 }
 
 impl eframe::App for Content {
