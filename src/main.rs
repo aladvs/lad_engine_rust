@@ -9,6 +9,8 @@ use obj::{load_obj, Obj};
 
 
 struct Scene {
+    camera_position : [f32; 3],
+    camera_rotation : [f32; 3],
     objects: Vec<Mesh>,
 }
 
@@ -62,14 +64,17 @@ impl Default for Content {
 impl Default for Scene {
     fn default() -> Self {
         Scene {
+            camera_position: [0.0, 0.0, 0.0],
+            camera_rotation: [0.0, 0.0, 0.0],
             objects: vec![
-                obj_to_mesh(include_bytes!("models/suzanne.obj")), 
-                obj_to_mesh(include_bytes!("models/mario.obj"))],
+                obj_to_mesh(include_bytes!("models/suzanne.obj"), [2.0, 0.0, 0.0]), 
+                obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
+                ],
         }
     }
 }
 
-fn obj_to_mesh(bytes:&'static [u8]) -> Mesh {
+fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3]) -> Mesh {
     let OBJ_BYTES: &'static [u8] = bytes;
 
     let obj_bytes = Cursor::new(OBJ_BYTES);
@@ -94,7 +99,7 @@ fn obj_to_mesh(bytes:&'static [u8]) -> Mesh {
     let output = Mesh {
         vertices: mesh_vertices,  // Use the converted mesh vertices
         indices: mesh_indices,   // Use the converted mesh indices
-        position: [0.0, 0.0, 0.0],
+        position,
         rotation: [0.0, 0.0, 0.0],
         scale: [1.0, 1.0, 1.0],
     };
@@ -110,6 +115,8 @@ impl eframe::App for Content {
 
       //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
+
+        handle_input(&mut self.current_scene, ctx, deltaTime);
 
         egui::CentralPanel::default().show(ctx, |ui| {
             render_scene(&self.current_scene, stroke, &ui);
@@ -133,7 +140,26 @@ impl eframe::App for Content {
     }
 }
 
-
+fn handle_input(reference : &mut Scene, ctx : &Context, deltaTime: f32) {
+    if ctx.input(|i| i.key_down(Key::W)) {
+        reference.camera_position[2] += 10.0 * deltaTime;
+    }
+    if ctx.input(|i| i.key_down(Key::S)) {
+        reference.camera_position[2] -= 10.0 * deltaTime;
+    }
+    if ctx.input(|i| i.key_down(Key::A)) {
+        reference.camera_position[0] += 10.0 * deltaTime;
+    }
+    if ctx.input(|i| i.key_down(Key::D)) {
+        reference.camera_position[0] -= 10.0 * deltaTime;
+    }
+    if ctx.input(|i| i.key_down(Key::ArrowLeft)) {
+        reference.camera_rotation[2] += (1000.0 * deltaTime).to_radians();
+    }
+    if ctx.input(|i| i.key_down(Key::ArrowRight)) {
+        reference.camera_rotation[2] -= (1000.0 * deltaTime).to_radians();
+    }
+}
 
 fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
     let sin_x = f32::sin(angles[0]);
@@ -216,21 +242,21 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let rotated_c = apply_rotation(*vertex_c, mesh.rotation);
 
             let posed_a = [
-                rotated_a[0] + &mesh.position[0],
-                rotated_a[1] + &mesh.position[1],
-                rotated_a[2] + &mesh.position[2],
+                rotated_a[0] + &mesh.position[0] + scene.camera_position[0],
+                rotated_a[1] + &mesh.position[1] + scene.camera_position[1],
+                rotated_a[2] + &mesh.position[2] + scene.camera_position[2],
             ];
 
             let posed_b = [
-                rotated_b[0] + &mesh.position[0],
-                rotated_b[1] + &mesh.position[1],
-                rotated_b[2] + &mesh.position[2],
+                rotated_b[0] + &mesh.position[0] + scene.camera_position[0],
+                rotated_b[1] + &mesh.position[1] + scene.camera_position[1],
+                rotated_b[2] + &mesh.position[2] + scene.camera_position[2],
             ];
 
             let posed_c = [
-                rotated_c[0] + &mesh.position[0],
-                rotated_c[1] + &mesh.position[1],
-                rotated_c[2] + &mesh.position[2],
+                rotated_c[0] + &mesh.position[0] + scene.camera_position[0],
+                rotated_c[1] + &mesh.position[1] + scene.camera_position[1],
+                rotated_c[2] + &mesh.position[2] + scene.camera_position[2],
             ];
 
             // Backface Culling: Skip back-facing triangles
@@ -262,23 +288,23 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
         let rotated_a = apply_rotation(*vertex_a, mesh.rotation);
         let rotated_b = apply_rotation(*vertex_b, mesh.rotation);
         let rotated_c = apply_rotation(*vertex_c, mesh.rotation);
-
+    
         let posed_a = [
-            rotated_a[0] + &mesh.position[0],
-            rotated_a[1] + &mesh.position[1],
-            rotated_a[2] + &mesh.position[2],
+            rotated_a[0] + &mesh.position[0] + scene.camera_position[0],
+            rotated_a[1] + &mesh.position[1] + scene.camera_position[1],
+            rotated_a[2] + &mesh.position[2] + scene.camera_position[2],
         ];
 
         let posed_b = [
-            rotated_b[0] + &mesh.position[0],
-            rotated_b[1] + &mesh.position[1],
-            rotated_b[2] + &mesh.position[2],
+            rotated_b[0] + &mesh.position[0] + scene.camera_position[0],
+            rotated_b[1] + &mesh.position[1] + scene.camera_position[1],
+            rotated_b[2] + &mesh.position[2] + scene.camera_position[2],
         ];
 
         let posed_c = [
-            rotated_c[0] + &mesh.position[0],
-            rotated_c[1] + &mesh.position[1],
-            rotated_c[2] + &mesh.position[2],
+            rotated_c[0] + &mesh.position[0] + scene.camera_position[0],
+            rotated_c[1] + &mesh.position[1] + scene.camera_position[1],
+            rotated_c[2] + &mesh.position[2] + scene.camera_position[2],
         ];
 
         // Adjust the depth factor to reduce the effect
@@ -434,6 +460,10 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
     //  ui.horizontal(|ui| {
+        reference.pos_slider.0 = reference.current_scene.objects[0].position[0];
+        reference.pos_slider.1 = reference.current_scene.objects[0].position[1];
+        reference.pos_slider.2 = reference.current_scene.objects[0].position[2];
+
           ui.vertical(|ui| {
               ui.add(TextEdit::singleline(&mut "X").desired_width(110.0));
               ui.add(egui::Slider::new(&mut reference.pos_slider.0, -5.0..=5.0).clamp_to_range(false));
