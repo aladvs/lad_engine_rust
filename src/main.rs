@@ -302,24 +302,35 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             Pos2::new(line_end_b[0], line_end_b[1]),
             Pos2::new(line_end_c[0], line_end_c[1]),
         ];
-        let stroke_black = Stroke::new(0.5, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0));
-        let shape = Shape::convex_polygon(points, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0), stroke_black);
+        let stroke_black = Stroke::new(0.5, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0));
+        let shape = Shape::convex_polygon(points, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0), stroke_black);
         painter.add(shape);
     }
 }
 
 
 
-fn value_to_color (value: f32) -> Color32{
-let clamped_value = value.clamp(-1.0, 1.0);
-let interpolation_factor = 1.0 - (clamped_value+ 1.0) / 2.0;
+fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
+    // Clamp the value to the specified range
+    let clamped_value = value.clamp(min_value, max_value);
 
-let red = (255.0- interpolation_factor * 255.0) as u8;
-let green = (255.0 - interpolation_factor * 255.0) as u8;
-let blue = (255.0 - interpolation_factor * 255.0) as u8;
+    // Map the clamped value to the range [0.0, 1.0]
+    let interpolation_factor = (clamped_value - min_value) / (max_value - min_value);
 
-Color32::from_rgb(red, green, blue)
+    // Calculate the color components
+    let red 
+//    = (interpolation_factor * 255.0) as u8;
+    = 50.0 as u8;
+    let green
+    = (interpolation_factor * 255.0) as u8;
+//     = 0.0 as u8;
+    let blue
+//     = (interpolation_factor * 255.0) as u8;
+    = 100.0 as u8;
+
+    Color32::from_rgb(red, green, blue)
 }
+
 
 fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     
