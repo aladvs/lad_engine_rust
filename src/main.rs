@@ -165,10 +165,10 @@ fn handle_input(reference : &mut Scene, ctx : &Context, deltaTime: f32) {
         reference.camera_position[2] += (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::ArrowLeft)) {
-        reference.camera_rotation[1] -= (20000.0 * deltaTime).to_radians();
+        reference.camera_rotation[1] -= (7000.0 * deltaTime).to_radians();
     }
     if ctx.input(|i| i.key_down(Key::ArrowRight)) {
-        reference.camera_rotation[1] += (20000.0 * deltaTime).to_radians();
+        reference.camera_rotation[1] += (7000.0 * deltaTime).to_radians();
     }
 }
 
