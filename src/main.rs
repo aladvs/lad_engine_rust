@@ -255,19 +255,19 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let posed_a = [
                 rotated_a[0] + &mesh.position[0] + scene.camera_position[0],
                 rotated_a[1] + &mesh.position[1] + scene.camera_position[1],
-                rotated_a[2] + &mesh.position[2] + scene.camera_position[2],
+                rotated_a[2] + &mesh.position[2] + scene.camera_position[2] - 10.0,
             ];
 
             let posed_b = [
                 rotated_b[0] + &mesh.position[0] + scene.camera_position[0],
                 rotated_b[1] + &mesh.position[1] + scene.camera_position[1],
-                rotated_b[2] + &mesh.position[2] + scene.camera_position[2],
+                rotated_b[2] + &mesh.position[2] + scene.camera_position[2] - 10.0,
             ];
 
             let posed_c = [
                 rotated_c[0] + &mesh.position[0] + scene.camera_position[0],
                 rotated_c[1] + &mesh.position[1] + scene.camera_position[1],
-                rotated_c[2] + &mesh.position[2] + scene.camera_position[2],
+                rotated_c[2] + &mesh.position[2] + scene.camera_position[2] - 10.0,
             ];
 
             let mut final_a = apply_rotation((posed_a[0], posed_a[1], posed_a[2]), [scene.camera_rotation[0].to_radians(), scene.camera_rotation[1].to_radians(), scene.camera_rotation[2].to_radians()]);
