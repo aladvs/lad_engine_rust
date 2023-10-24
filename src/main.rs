@@ -141,23 +141,34 @@ impl eframe::App for Content {
 }
 
 fn handle_input(reference : &mut Scene, ctx : &Context, deltaTime: f32) {
+    let camera_rotation = reference.camera_rotation[1]; // Get the camera's Y rotation
+    let move_speed = 10.0 * deltaTime;
+
     if ctx.input(|i| i.key_down(Key::W)) {
-        reference.camera_position[2] += 10.0 * deltaTime;
+        // Move forward relative to the camera's rotation
+        reference.camera_position[0] -= camera_rotation.to_radians().sin() * move_speed;
+        reference.camera_position[2] += camera_rotation.to_radians().cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::S)) {
-        reference.camera_position[2] -= 10.0 * deltaTime;
+        // Move backward relative to the camera's rotation
+        reference.camera_position[0] += camera_rotation.to_radians().sin() * move_speed;
+        reference.camera_position[2] -= camera_rotation.to_radians().cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::A)) {
-        reference.camera_position[0] += 10.0 * deltaTime;
+        // Move left relative to the camera's rotation
+        reference.camera_position[0] += (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).sin() * move_speed;
+        reference.camera_position[2] -= (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::D)) {
-        reference.camera_position[0] -= 10.0 * deltaTime;
+        // Move right relative to the camera's rotation
+        reference.camera_position[0] -= (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).sin() * move_speed;
+        reference.camera_position[2] += (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::ArrowLeft)) {
-        reference.camera_rotation[1] -= (2000.0 * deltaTime).to_radians();
+        reference.camera_rotation[1] -= (20000.0 * deltaTime).to_radians();
     }
     if ctx.input(|i| i.key_down(Key::ArrowRight)) {
-        reference.camera_rotation[1] += (2000.0 * deltaTime).to_radians();
+        reference.camera_rotation[1] += (20000.0 * deltaTime).to_radians();
     }
 }
 
@@ -405,7 +416,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
         ];
         //let stroke_black = Stroke::new(0.5, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0));
         let stroke_black = Stroke::new(0.5, Color32::BLACK);
-        let shape = Shape::convex_polygon(points, value_to_color((posed_a[2] + posed_b[2] + posed_c[2]) / 3.0, -2.0, 2.0), stroke_black);
+        let shape = Shape::convex_polygon(points, value_to_color((final_a[2] + final_b[2] + final_c[2]) / 3.0, -2.0, 2.0), stroke_black);
        // println!("{}", depth_a);
 
             painter.add(shape);
