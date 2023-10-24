@@ -53,7 +53,7 @@ impl Default for Content {
         Content {
             text: String::new(),
             current_scene: Scene::default(),
-            speed_slider: (0.0, 0.0, 0.0), // Set the default value to 50.0
+            speed_slider: (0.0, 10.0, 0.0), 
             pos_slider: (0.0, 0.0, 0.0),
         }
     }
@@ -67,7 +67,7 @@ impl Default for Scene {
             camera_position: [0.0, 0.0, 0.0],
             camera_rotation: [0.0, 0.0, 0.0],
             objects: vec![
-                obj_to_mesh(include_bytes!("models/suzanne.obj"), [2.0, 0.0, 0.0]), 
+                obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3]), 
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
                 ],
         }
