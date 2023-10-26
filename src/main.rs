@@ -5,6 +5,7 @@ use egui::*;
 use std::fs::File;
 use std::io::{BufReader, Cursor};
 use obj::{load_obj, Obj};
+use std::time::Instant;
 
 
 
@@ -68,6 +69,7 @@ impl Default for Scene {
             camera_rotation: [0.0, 0.0, 0.0],
             objects: vec![
                 obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3]), 
+               // obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
                 ],
         }
@@ -225,14 +227,14 @@ fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) 
 }
 
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
+    let now = Instant::now();
     let canvas_width = ui.ctx().screen_rect().width();
     let canvas_height = ui.ctx().screen_rect().height();
     let half_width = canvas_width / 2.0;
     let half_height = canvas_height / 2.0;
 
     let painter = ui.painter();
-    
-    let mut triangles_with_depth: Vec<(usize, usize, usize, f32, usize)> = Vec::new();
+    let mut triangles_with_depth: Vec<(usize, [Pos2; 3], f32)> = Vec::new();
 
     for (object_index, mesh) in scene.objects.iter().enumerate() {
         let vertices = &mesh.vertices;
@@ -244,12 +246,10 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let a = indices[i] as usize;
             let b = indices[i + 1] as usize;
             let c = indices[i + 2] as usize;
-
             let vertex_a = &vertices[a];
             let vertex_b = &vertices[b];
             let vertex_c = &vertices[c];
 
-            // Apply transformations to the vertices
             let rotated_a = apply_rotation(*vertex_a, *rotation);
             let rotated_b = apply_rotation(*vertex_b, *rotation);
             let rotated_c = apply_rotation(*vertex_c, *rotation);
@@ -272,79 +272,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 rotated_c[2] + position[2] + scene.camera_position[2] - 10.0,
             ];
 
-            // Calculate the final positions
-            let mut final_a = apply_rotation(
-                (posed_a[0], posed_a[1], posed_a[2]),
-                [
-                    scene.camera_rotation[0].to_radians(),
-                    scene.camera_rotation[1].to_radians(),
-                    scene.camera_rotation[2].to_radians(),
-                ],
-            );
-
-            let mut final_b = apply_rotation(
-                (posed_b[0], posed_b[1], posed_b[2]),
-                [
-                    scene.camera_rotation[0].to_radians(),
-                    scene.camera_rotation[1].to_radians(),
-                    scene.camera_rotation[2].to_radians(),
-                ],
-            );
-
-            let mut final_c = apply_rotation(
-                (posed_c[0], posed_c[1], posed_c[2]),
-                [
-                    scene.camera_rotation[0].to_radians(),
-                    scene.camera_rotation[1].to_radians(),
-                    scene.camera_rotation[2].to_radians(),
-                ],
-            );
-
-            // Adjust the depth factor
-            final_a[2] += 10.0;
-            final_b[2] += 10.0;
-            final_c[2] += 10.0;
-
-            // Calculate depth
-            let depth = -(final_a[2] + final_b[2] + final_c[2]) / 3.0;
-            triangles_with_depth.push((a, b, c, depth, object_index));
-        }
-    }
-
-    // Sort triangles by depth in descending order
-    triangles_with_depth.sort_by(|a, b| b.3.partial_cmp(&a.3).unwrap_or(std::cmp::Ordering::Equal));
-
-    for (a, b, c, _, object_index) in triangles_with_depth {
-        let mesh = &scene.objects[object_index];
-        let vertices = &mesh.vertices;
-        let vertex_a = &vertices[a];
-        let vertex_b = &vertices[b];
-        let vertex_c = &vertices[c];
-
-        // Apply transformations to the vertices
-        let rotated_a = apply_rotation(*vertex_a, mesh.rotation);
-        let rotated_b = apply_rotation(*vertex_b, mesh.rotation);
-        let rotated_c = apply_rotation(*vertex_c, mesh.rotation);
-
-        let posed_a = [
-            rotated_a[0] + mesh.position[0] + scene.camera_position[0],
-            rotated_a[1] + mesh.position[1] + scene.camera_position[1],
-            rotated_a[2] + mesh.position[2] + scene.camera_position[2] - 10.0,
-        ];
-
-        let posed_b = [
-            rotated_b[0] + mesh.position[0] + scene.camera_position[0],
-            rotated_b[1] + mesh.position[1] + scene.camera_position[1],
-            rotated_b[2] + mesh.position[2] + scene.camera_position[2] - 10.0,
-        ];
-
-        let posed_c = [
-            rotated_c[0] + mesh.position[0] + scene.camera_position[0],
-            rotated_c[1] + mesh.position[1] + scene.camera_position[1],
-            rotated_c[2] + mesh.position[2] + scene.camera_position[2] - 10.0,
-        ];
-
-        // Calculate the final positions
+                    // Calculate the final positions
         let mut final_a = apply_rotation(
             (posed_a[0], posed_a[1], posed_a[2]),
             [
@@ -372,47 +300,75 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             ],
         );
 
-        final_a[2] += 10.0;
-        final_b[2] += 10.0;
-        final_c[2] += 10.0;
+        final_a = [
+            final_a[0],
+            final_a[1],
+            final_a[2] + 10.0,
+        ];
+        final_b = [
+            final_b[0],
+            final_b[1],
+            final_b[2] + 10.0,
+        ];
+        final_c = [
+            final_c[0],
+            final_c[1],
+            final_c[2] + 10.0,
+        ];
 
-        let depth_a = final_a[2] * -0.1;
-        let depth_b = final_b[2] * -0.1;
-        let depth_c = final_c[2] * -0.1;
+            let depth = -(final_a[2] + final_b[2] + final_c[2]) / 3.0;
 
-        if depth_a > -1.0 && depth_b > -1.0 && depth_c > -1.0 {
-            let perspective_factor_a = 1.0 / (1.0 + depth_a);
-            let perspective_factor_b = 1.0 / (1.0 + depth_b);
-            let perspective_factor_c = 1.0 / (1.0 + depth_c);
+            let depth_a = final_a[2] * -0.1;
+            let depth_b = final_b[2] * -0.1;
+            let depth_c = final_c[2] * -0.1;
 
-            let line_start_a = [
-                final_a[0] * perspective_factor_a * 100.0 + half_width,
-                canvas_height - final_a[1] * perspective_factor_a * 100.0 - half_height,
-            ];
+            if depth_a > -1.0 && depth_b > -1.0 && depth_c > -1.0 {
+                let perspective_factor_a = 1.0 / (1.0 + depth_a);
+                let perspective_factor_b = 1.0 / (1.0 + depth_b);
+                let perspective_factor_c = 1.0 / (1.0 + depth_c);
 
-            let line_end_b = [
-                final_b[0] * perspective_factor_b * 100.0 + half_width,
-                canvas_height - final_b[1] * perspective_factor_b * 100.0 - half_height,
-            ];
+                let line_start_a = [
+                    final_a[0] * perspective_factor_a * 100.0 + half_width,
+                    canvas_height - final_a[1] * perspective_factor_a * 100.0 - half_height,
+                ];
 
-            let line_end_c = [
-                final_c[0] * perspective_factor_c * 100.0 + half_width,
-                canvas_height - final_c[1] * perspective_factor_c * 100.0 - half_height,
-            ];
+                let line_end_b = [
+                    final_b[0] * perspective_factor_b * 100.0 + half_width,
+                    canvas_height - final_b[1] * perspective_factor_b * 100.0 - half_height,
+                ];
 
-            let points = vec![
-                Pos2::new(line_start_a[0], line_start_a[1]),
-                Pos2::new(line_end_b[0], line_end_b[1]),
-                Pos2::new(line_end_c[0], line_end_c[1]),
-            ];
+                let line_end_c = [
+                    final_c[0] * perspective_factor_c * 100.0 + half_width,
+                    canvas_height - final_c[1] * perspective_factor_c * 100.0 - half_height,
+                ];
 
-            let color = value_to_color((final_a[2] + final_b[2] + final_c[2]) / 3.0, -2.0, 2.0);
-            let stroke_black = Stroke::new(0.5, Color32::BLACK);
-            let shape = Shape::convex_polygon(points, color, stroke_black);
+                let triangle = [
+                    Pos2::new(line_start_a[0], line_start_a[1]),
+                    Pos2::new(line_end_b[0], line_end_b[1]),
+                    Pos2::new(line_end_c[0], line_end_c[1]),
+                ];
 
-            painter.add(shape);
+                triangles_with_depth.push((object_index, triangle, depth_a));
+            }
         }
     }
+
+    triangles_with_depth.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+
+    for (object_index, triangle, _) in triangles_with_depth {
+        let mesh = &scene.objects[object_index];
+        let mut mesh = egui::Mesh::default();
+
+        //let color = value_to_color((final_a[2] + final_b[2] + final_c[2]) / 3.0, -2.0, 2.0);
+        let stroke_black = Stroke::new(0.5, Color32::BLACK);
+        let shape = Shape::convex_polygon(triangle.to_vec(), Color32::BLUE, stroke_black);
+
+
+        painter.add(shape);
+    }
+
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
 }
 
 
