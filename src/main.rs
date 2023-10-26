@@ -5,7 +5,7 @@ use egui::*;
 use std::fs::File;
 use std::io::{BufReader, Cursor};
 use obj::{load_obj, Obj};
-use std::time::Instant;
+//use std::time::Instant;
 
 
 
@@ -227,7 +227,7 @@ fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) 
 }
 
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
-    let now = Instant::now();
+//    let now = Instant::now();
     let canvas_width = ui.ctx().screen_rect().width();
     let canvas_height = ui.ctx().screen_rect().height();
     let half_width = canvas_width / 2.0;
@@ -356,11 +356,12 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     triangles_with_depth.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
 
 
-    for (_, triangle, _) in triangles_with_depth {
+    for (_, triangle, depth) in triangles_with_depth {
         // Add vertices to the mesh
-        mesh.colored_vertex(triangle[0], egui::Color32::RED);
-        mesh.colored_vertex(triangle[1], egui::Color32::GREEN);
-        mesh.colored_vertex(triangle[2], egui::Color32::BLUE);
+        mesh.colored_vertex(triangle[0], egui::Color32::LIGHT_BLUE);
+        mesh.colored_vertex(triangle[1], egui::Color32::LIGHT_BLUE);
+        mesh.colored_vertex(triangle[2], egui::Color32::LIGHT_BLUE);
+
 
         // Add indices to the mesh
         let vertex_count = mesh.vertices.len() as u32;
@@ -369,8 +370,8 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 
     ui.painter().add(egui::Shape::mesh(mesh));
 
-    let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+//    let elapsed = now.elapsed();
+//    println!("Elapsed: {:.2?}", elapsed);
 }
 
 
