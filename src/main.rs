@@ -69,7 +69,7 @@ impl Default for Scene {
             camera_rotation: [0.0, 0.0, 0.0],
             objects: vec![
                 obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3]), 
-               // obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
+            //    obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
                 ],
         }
@@ -388,8 +388,9 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
         }
     }
 
-    triangles_with_depth.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
-
+ triangles_with_depth.sort_by(|a, b| {
+    b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.0.cmp(&b.0))
+});
     for (_, triangle, _, lighting) in triangles_with_depth {
         let color = lighting;
 
