@@ -233,7 +233,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let half_width = canvas_width / 2.0;
     let half_height = canvas_height / 2.0;
 
-    let painter = ui.painter();
+    let mut mesh = egui::Mesh::default();
     let mut triangles_with_depth: Vec<(usize, [Pos2; 3], f32)> = Vec::new();
 
     for (object_index, mesh) in scene.objects.iter().enumerate() {
@@ -272,49 +272,49 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 rotated_c[2] + position[2] + scene.camera_position[2] - 10.0,
             ];
 
-                    // Calculate the final positions
-        let mut final_a = apply_rotation(
-            (posed_a[0], posed_a[1], posed_a[2]),
-            [
-                scene.camera_rotation[0].to_radians(),
-                scene.camera_rotation[1].to_radians(),
-                scene.camera_rotation[2].to_radians(),
-            ],
-        );
+            // Calculate the final positions
+            let mut final_a = apply_rotation(
+                (posed_a[0], posed_a[1], posed_a[2]),
+                [
+                    scene.camera_rotation[0].to_radians(),
+                    scene.camera_rotation[1].to_radians(),
+                    scene.camera_rotation[2].to_radians(),
+                ],
+            );
 
-        let mut final_b = apply_rotation(
-            (posed_b[0], posed_b[1], posed_b[2]),
-            [
-                scene.camera_rotation[0].to_radians(),
-                scene.camera_rotation[1].to_radians(),
-                scene.camera_rotation[2].to_radians(),
-            ],
-        );
+            let mut final_b = apply_rotation(
+                (posed_b[0], posed_b[1], posed_b[2]),
+                [
+                    scene.camera_rotation[0].to_radians(),
+                    scene.camera_rotation[1].to_radians(),
+                    scene.camera_rotation[2].to_radians(),
+                ],
+            );
 
-        let mut final_c = apply_rotation(
-            (posed_c[0], posed_c[1], posed_c[2]),
-            [
-                scene.camera_rotation[0].to_radians(),
-                scene.camera_rotation[1].to_radians(),
-                scene.camera_rotation[2].to_radians(),
-            ],
-        );
+            let mut final_c = apply_rotation(
+                (posed_c[0], posed_c[1], posed_c[2]),
+                [
+                    scene.camera_rotation[0].to_radians(),
+                    scene.camera_rotation[1].to_radians(),
+                    scene.camera_rotation[2].to_radians(),
+                ],
+            );
 
-        final_a = [
-            final_a[0],
-            final_a[1],
-            final_a[2] + 10.0,
-        ];
-        final_b = [
-            final_b[0],
-            final_b[1],
-            final_b[2] + 10.0,
-        ];
-        final_c = [
-            final_c[0],
-            final_c[1],
-            final_c[2] + 10.0,
-        ];
+            final_a = [
+                final_a[0],
+                final_a[1],
+                final_a[2] + 10.0,
+            ];
+            final_b = [
+                final_b[0],
+                final_b[1],
+                final_b[2] + 10.0,
+            ];
+            final_c = [
+                final_c[0],
+                final_c[1],
+                final_c[2] + 10.0,
+            ];
 
             let depth = -(final_a[2] + final_b[2] + final_c[2]) / 3.0;
 
@@ -348,28 +348,31 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                     Pos2::new(line_end_c[0], line_end_c[1]),
                 ];
 
-                triangles_with_depth.push((object_index, triangle, depth_a));
+                triangles_with_depth.push((object_index, triangle, depth));
             }
         }
     }
 
     triangles_with_depth.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
 
-    for (object_index, triangle, _) in triangles_with_depth {
-        let mesh = &scene.objects[object_index];
-        let mut mesh = egui::Mesh::default();
 
-        //let color = value_to_color((final_a[2] + final_b[2] + final_c[2]) / 3.0, -2.0, 2.0);
-        let stroke_black = Stroke::new(0.5, Color32::BLACK);
-        let shape = Shape::convex_polygon(triangle.to_vec(), Color32::BLUE, stroke_black);
+    for (_, triangle, _) in triangles_with_depth {
+        // Add vertices to the mesh
+        mesh.colored_vertex(triangle[0], egui::Color32::RED);
+        mesh.colored_vertex(triangle[1], egui::Color32::GREEN);
+        mesh.colored_vertex(triangle[2], egui::Color32::BLUE);
 
-
-        painter.add(shape);
+        // Add indices to the mesh
+        let vertex_count = mesh.vertices.len() as u32;
+        mesh.add_triangle(vertex_count - 3, vertex_count - 2, vertex_count - 1);
     }
+
+    ui.painter().add(egui::Shape::mesh(mesh));
 
     let elapsed = now.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
 }
+
 
 
 
