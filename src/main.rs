@@ -203,7 +203,7 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
 }
 
 
-fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
+/*fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
     // Calculate the vectors for two edges of the triangle
     let edge1 = [vertex_b[0] - vertex_a[0], vertex_b[1] - vertex_a[1], vertex_b[2] - vertex_a[2]];
     let edge2 = [vertex_c[0] - vertex_a[0], vertex_c[1] - vertex_a[1], vertex_c[2] - vertex_a[2]];
@@ -224,7 +224,25 @@ fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) 
         normal[1] / length,
         normal[2] / length,
     ]
+} */
+
+fn calculate_normal(triangle: [Pos2; 3]) -> [f32; 2] {
+    // Calculate two vectors on the triangle's plane
+    let v1 = [triangle[1].x - triangle[0].x, triangle[1].y - triangle[0].y];
+    let v2 = [triangle[2].x - triangle[0].x, triangle[2].y - triangle[0].y];
+
+    // Calculate the cross product of v1 and v2 to get the normal
+    let normal = v1[0] * v2[1] - v1[1] * v2[0];
+
+    // Normalize the normal
+    let length = (normal * normal).sqrt();
+    if length != 0.0 {
+        [normal / length, 0.0]
+    } else {
+        [0.0, 0.0] // Avoid division by zero
+    }
 }
+
 
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 //    let now = Instant::now();
@@ -232,6 +250,8 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     let canvas_height = ui.ctx().screen_rect().height();
     let half_width = canvas_width / 2.0;
     let half_height = canvas_height / 2.0;
+    let viewport_size = canvas_width.max(canvas_height);
+
 
     let mut mesh = egui::Mesh::default();
     let mut triangles_with_depth: Vec<(usize, [Pos2; 3], f32)> = Vec::new();
@@ -357,13 +377,34 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 
 
     for (_, triangle, depth) in triangles_with_depth {
-        // Add vertices to the mesh
-        mesh.colored_vertex(triangle[0], egui::Color32::LIGHT_BLUE);
-        mesh.colored_vertex(triangle[1], egui::Color32::LIGHT_BLUE);
-        mesh.colored_vertex(triangle[2], egui::Color32::LIGHT_BLUE);
+        // Calculate the normal of the triangle (as previously shown)
+        let mut normal = calculate_normal(triangle);
+        normal = [-normal[0], -normal[1]];
 
+        // Calculate the camera-to-triangle vector (as previously shown)
+        let camera_to_triangle = [
+            triangle[0].x - scene.camera_position[0],
+            triangle[0].y - scene.camera_position[1],
+        ];
 
-        // Add indices to the mesh
+        // Calculate the dot product between the normal and the camera-to-triangle vector
+        let dot_product = normal[0] * camera_to_triangle[0] + normal[1] * camera_to_triangle[1];
+        let brightness = (dot_product.max(0.0) / viewport_size).max(0.0).min(1.0);
+       // println!("{}", brightness);
+
+        // Calculate brightness using Lambertian shading
+       // let brightness = dot_product.max(0.0);
+        //println!("{}", brightness);
+        // Adjust the color based on brightness (e.g., using grayscale)
+        let color = value_to_color(brightness, 0.0, 1.0);
+        //from_black_and_white(brightness, brightness);
+
+        // Add vertices to the mesh with the calculated color
+        mesh.colored_vertex(triangle[0], color);
+        mesh.colored_vertex(triangle[1], color);
+        mesh.colored_vertex(triangle[2], color);
+
+        // Add indices to the mesh (as previously shown)
         let vertex_count = mesh.vertices.len() as u32;
         mesh.add_triangle(vertex_count - 3, vertex_count - 2, vertex_count - 1);
     }
