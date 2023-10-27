@@ -436,12 +436,13 @@ fn calculate_lighting(
     ];
 
     let camera_direction = [
-        camera_position[0] - vertex[0],
-        camera_position[1] - vertex[1],
-        camera_position[2] - vertex[2],
+        1.0 - vertex[0],
+        1.0 - vertex[1],
+        1.0 - vertex[2],
     ];
 
-    let camera_distance = (camera_direction[0].powi(2) + camera_direction[1].powi(2) + camera_direction[2].powi(2)).sqrt();
+    //let camera_distance = (camera_direction[0].powi(2) + camera_direction[1].powi(2) + camera_direction[2].powi(2)).sqrt();
+    let camera_distance = 1.0;
 
     let camera_direction = [
         camera_direction[0] / camera_distance,
