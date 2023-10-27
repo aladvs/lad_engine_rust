@@ -64,8 +64,8 @@ impl Default for Content {
             current_scene: Scene::default(),
             speed_slider: (0.0, 10.0, 0.0), 
             pos_slider: (0.0, 0.0, 0.0),
-            light_intensity: 1.0,
-            light_pos: [0.0, 5.0, 2.0]
+            light_intensity: 32.3,
+            light_pos: [5.7, 0.6, 4.5]
         }
     }
 }
@@ -82,7 +82,7 @@ impl Default for Scene {
             //    obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
                 ],
-            light: Light {position: [0.0, 5.0, 2.0], intensity: 1.0},
+            light: Light {position: [5.7, 0.6, 4.5], intensity: 32.3},
         }
     }
 }
@@ -235,8 +235,7 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
         normal[1] / length,
         normal[2] / length,
     ]
-} */
-
+} 
 fn calculate_normal(triangle: [Pos2; 3]) -> [f32; 3] {
     // Calculate the normal for the triangle
     let edge1 = [triangle[1].x - triangle[0].x, triangle[1].y - triangle[0].y, 0.0];
@@ -254,7 +253,7 @@ fn calculate_normal(triangle: [Pos2; 3]) -> [f32; 3] {
         cross_product[1] / length,
         cross_product[2] / length,
     ]
-}
+} */
 
 
 
@@ -288,27 +287,43 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let rotated_b = apply_rotation(*vertex_b, *rotation);
             let rotated_c = apply_rotation(*vertex_c, *rotation);
 
+            let pose_a = [
+                rotated_a[0] + position[0],
+                rotated_a[1] + position[1],
+                rotated_a[2] + position[2],
+            ];
+
+            let pose_b = [
+                rotated_b[0] + position[0],
+                rotated_b[1] + position[1],
+                rotated_b[2] + position[2],
+            ];
+
+            let pose_c = [
+                rotated_c[0] + position[0],
+                rotated_c[1] + position[1],
+                rotated_c[2] + position[2],
+            ];
+
             // Calculate lighting for each vertex here
-            let lighting_a = calculate_lighting(rotated_a, scene.light.position, scene.light.intensity , 5000.0);
-            let lighting_b = calculate_lighting(rotated_b, scene.light.position, scene.light.intensity, 5000.0);
-            let lighting_c = calculate_lighting(rotated_c, scene.light.position, scene.light.intensity, 5000.0);
+            let lighting_a = calculate_lighting(pose_a, pose_b, pose_c, scene.light.position, scene.light.intensity , 5000.0);
 
             let posed_a = [
-                rotated_a[0] + position[0] + scene.camera_position[0],
-                rotated_a[1] + position[1] + scene.camera_position[1],
-                rotated_a[2] + position[2] + scene.camera_position[2] - 10.0,
+                pose_a[0] + scene.camera_position[0],
+                pose_a[1] + scene.camera_position[1],
+                pose_a[2] + scene.camera_position[2] - 10.0,
             ];
 
             let posed_b = [
-                rotated_b[0] + position[0] + scene.camera_position[0],
-                rotated_b[1] + position[1] + scene.camera_position[1],
-                rotated_b[2] + position[2] + scene.camera_position[2] - 10.0,
+                pose_b[0] + scene.camera_position[0],
+                pose_b[1] + scene.camera_position[1],
+                pose_b[2] + scene.camera_position[2] - 10.0,
             ];
 
             let posed_c = [
-                rotated_c[0] + position[0] + scene.camera_position[0],
-                rotated_c[1] + position[1] + scene.camera_position[1],
-                rotated_c[2] + position[2] + scene.camera_position[2] - 10.0,
+                pose_c[0] + scene.camera_position[0],
+                pose_c[1] + scene.camera_position[1],
+                pose_c[2] + scene.camera_position[2] - 10.0,
             ];
 
             // Calculate the final positions
@@ -387,14 +402,12 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                     Pos2::new(line_end_c[0], line_end_c[1]),
                 ];
 
-                let lighting = [
-                    (lighting_a[0] + lighting_b[0] + lighting_c[0]) / 3.0,
-                    (lighting_a[1] + lighting_b[1] + lighting_c[1]) / 3.0,
-                    (lighting_a[2] + lighting_b[2] + lighting_c[2]) / 3.0,
-                ];
-                let lighting2 = value_to_color((lighting[0] + lighting[1] + lighting[2] ) / 3.0, 0.0, 0.2);
-                //println!("{:#?}", lighting);
-                triangles_with_depth.push((object_index, triangle, depth, lighting2));
+                let lighting = value_to_color((lighting_a[0] + lighting_a[1] + lighting_a[2]) / 3.0, 0.0, 1.0 );
+                //println!("{:#?}", (lighting_a[0] + lighting_a[1] + lighting_a[2]) / 3.0);
+                //if (lighting_a[0] + lighting_a[1] + lighting_a[2]) / 3.0 > 0.7 {
+                //    println!("AAAA");
+                //}
+                triangles_with_depth.push((object_index, triangle, depth, lighting));
             }
         }
     }
@@ -422,66 +435,86 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 }
 
 fn calculate_lighting(
-    vertex: [f32; 3],
+    vertex_a: [f32; 3],
+    vertex_b: [f32; 3],
+    vertex_c: [f32; 3],
     light_position: [f32; 3],
     intensity: f32,
     max_distance: f32,
 ) -> [f32; 3] {
-    let light_direction = [
-        light_position[0] - vertex[0],
-        light_position[1] - vertex[1],
-        light_position[2] - vertex[2],
+    // Calculate the surface normal of the triangle
+    let mut normal = calculate_normal(vertex_a, vertex_b, vertex_c);
+    normal = [
+        normal[0],
+        normal[1],
+        normal[2],
+        ];
+
+    // Calculate the vector from the triangle vertices to the light source
+    let to_light = [
+        light_position[0] - vertex_a[0],
+        light_position[1] - vertex_a[1],
+        light_position[2] - vertex_a[2],
     ];
 
-    let distance = (light_direction[0].powi(2) + light_direction[1].powi(2) + light_direction[2].powi(2)).sqrt();
+    // Calculate the distance from the light source to the triangle
+    let distance = f32::sqrt(to_light[0] * to_light[0] + to_light[1] * to_light[1] + to_light[2] * to_light[2]);
 
     if distance > max_distance {
-        return [0.0, 0.0, 0.0]; // No lighting
+        // Light is too far away, no lighting
+        return [0.0, 0.0, 0.0];
     }
 
-    // Calculate the dot product between the normalized light direction and normalized camera direction
-    let light_direction = [
-        light_direction[0] / distance,
-        light_direction[1] / distance,
-        light_direction[2] / distance,
+    // Normalize the to_light vector
+    let to_light_length = f32::sqrt(to_light[0] * to_light[0] + to_light[1] * to_light[1] + to_light[2] * to_light[2]);
+    let to_light_normalized = [
+        to_light[0] / to_light_length,
+        to_light[1] / to_light_length,
+        to_light[2] / to_light_length,
     ];
 
-    let camera_direction = [
-        1.0 - vertex[0],
-        1.0 - vertex[1],
-        1.0 - vertex[2],
-    ];
+    // Calculate the cosine of the angle between the normal and the to_light vector
+    let cos_theta = normal[0] * to_light_normalized[0] + normal[1] * to_light_normalized[1] + normal[2] * to_light_normalized[2];
 
-    //let camera_distance = (camera_direction[0].powi(2) + camera_direction[1].powi(2) + camera_direction[2].powi(2)).sqrt();
-    let camera_distance = 1.0;
+    if cos_theta <= 0.0 {
+        // Light is behind the triangle, no lighting
+        return [0.0, 0.0, 0.0];
+    }
 
-    let camera_direction = [
-        camera_direction[0] / camera_distance,
-        camera_direction[1] / camera_distance,
-        camera_direction[2] / camera_distance,
-    ];
+    // Calculate the lighting intensity using Lambert's Cosine Law
+    let lighting_intensity = intensity * cos_theta / (distance * distance);
 
-    // Calculate the dot product between the normalized light direction and normalized camera direction
-    let dot_product = (
-        light_direction[0] * camera_direction[0],
-        light_direction[1] * camera_direction[1],
-        light_direction[2] * camera_direction[2],
-    );
-
-    // Ensure the dot product is clamped to the range [0, 1]
-    let clamped_dot_product = dot_product.0.max(0.0).min(1.0);
-
-    // Calculate the lighting based on the clamped dot product and the intensity
-    let lighting = [
-        clamped_dot_product * intensity,
-        clamped_dot_product * intensity,
-        clamped_dot_product * intensity,
-    ];
-
-    lighting
+    // Return the lighting intensity as RGB color
+    [lighting_intensity, lighting_intensity, lighting_intensity]
 }
 
+fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
+    // Calculate the cross product of two edges of the triangle to find the normal vector
+    let edge1 = [
+        vertex_b[0] - vertex_a[0],
+        vertex_b[1] - vertex_a[1],
+        vertex_b[2] - vertex_a[2],
+    ];
+    let edge2 = [
+        vertex_c[0] - vertex_a[0],
+        vertex_c[1] - vertex_a[1],
+        vertex_c[2] - vertex_a[2],
+    ];
 
+    let normal = [
+        edge1[1] * edge2[2] - edge1[2] * edge2[1],
+        edge1[2] * edge2[0] - edge1[0] * edge2[2],
+        edge1[0] * edge2[1] - edge1[1] * edge2[0],
+    ];
+
+    // Normalize the normal vector
+    let normal_length = f32::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+    [
+        normal[0] / normal_length,
+        normal[1] / normal_length,
+        normal[2] / normal_length,
+    ]
+}
 
 
 
@@ -552,7 +585,6 @@ fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         reference.current_scene.light.position = reference.light_pos
     });
 
-    ui.add(TextEdit::singleline(&mut "Light Position:").desired_width(110.0));
     
 }
 
