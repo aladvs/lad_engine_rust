@@ -53,6 +53,8 @@ struct Content {
     current_scene: Scene,
     speed_slider: (f32, f32, f32),
     pos_slider: (f32, f32, f32),
+    light_intensity: f32,
+    light_pos: [f32;3]
 }
 
 impl Default for Content {
@@ -62,6 +64,8 @@ impl Default for Content {
             current_scene: Scene::default(),
             speed_slider: (0.0, 10.0, 0.0), 
             pos_slider: (0.0, 0.0, 0.0),
+            light_intensity: 1.0,
+            light_pos: [0.0, 5.0, 2.0]
         }
     }
 }
@@ -528,7 +532,28 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
 fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
-    ui.add(TextEdit::singleline(&mut "Placeholder").desired_width(110.0));
+    ui.add(TextEdit::singleline(&mut "Light Settings:").desired_width(110.0));
+    ui.add_space(10.0);
+    ui.horizontal(|ui| {
+        ui.add(TextEdit::singleline(&mut "Light Intensity:").desired_width(110.0));
+        reference.light_intensity = reference.current_scene.light.intensity;
+        ui.add(egui::DragValue::new(&mut reference.light_intensity).speed(0.1));  
+        reference.current_scene.light.intensity = reference.light_intensity
+    });
+    ui.add_space(4.0);
+    ui.horizontal(|ui| {
+        ui.add(TextEdit::singleline(&mut "Light Position:").desired_width(110.0));
+        reference.light_pos = reference.current_scene.light.position;
+
+        ui.add(egui::DragValue::new(&mut reference.light_pos[0]).speed(0.1));  
+        ui.add(egui::DragValue::new(&mut reference.light_pos[1]).speed(0.1));  
+        ui.add(egui::DragValue::new(&mut reference.light_pos[2]).speed(0.1));  
+
+        reference.current_scene.light.position = reference.light_pos
+    });
+
+    ui.add(TextEdit::singleline(&mut "Light Position:").desired_width(110.0));
+    
 }
 
 fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
