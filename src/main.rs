@@ -544,7 +544,7 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
 
 
 fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
-    
+    egui::ScrollArea::vertical().show(ui, |ui| {
     gerneral_settings(ui, reference, deltaTime);
     
         ui.add_space(10.0);
@@ -561,29 +561,34 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add_space(4.0);
     
     transform_ui(ui, reference, deltaTime);
+    });
 }
 
 fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
     ui.add(TextEdit::singleline(&mut "Light Settings:").desired_width(110.0));
     ui.add_space(10.0);
-    ui.horizontal(|ui| {
+
+
         ui.add(TextEdit::singleline(&mut "Light Intensity:").desired_width(110.0));
         reference.light_intensity = reference.current_scene.light.intensity;
         ui.add(egui::DragValue::new(&mut reference.light_intensity).speed(0.1));  
-        reference.current_scene.light.intensity = reference.light_intensity
-    });
+        reference.current_scene.light.intensity = reference.light_intensity;
+
+        
     ui.add_space(4.0);
-    ui.horizontal(|ui| {
+
         ui.add(TextEdit::singleline(&mut "Light Position:").desired_width(110.0));
         reference.light_pos = reference.current_scene.light.position;
 
+        ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut reference.light_pos[0]).speed(0.1));  
         ui.add(egui::DragValue::new(&mut reference.light_pos[1]).speed(0.1));  
         ui.add(egui::DragValue::new(&mut reference.light_pos[2]).speed(0.1));  
+        });
 
         reference.current_scene.light.position = reference.light_pos
-    });
+
 
     
 }
