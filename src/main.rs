@@ -13,6 +13,12 @@ struct Scene {
     camera_position : [f32; 3],
     camera_rotation : [f32; 3],
     objects: Vec<Mesh>,
+    light: Light,
+}
+
+struct Light {
+    position: [f32; 3],
+    intensity: f32,
 }
 
 #[derive(Debug)] 
@@ -72,6 +78,7 @@ impl Default for Scene {
             //    obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
                 ],
+            light: Light {position: [0.0, 5.0, 2.0], intensity: 1.0},
         }
     }
 }
@@ -278,9 +285,9 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
             let rotated_c = apply_rotation(*vertex_c, *rotation);
 
             // Calculate lighting for each vertex here
-            let lighting_a = calculate_lighting(rotated_a, [0.0, 5.0, 2.0], scene.camera_position, 500.0);
-            let lighting_b = calculate_lighting(rotated_b, [0.0, 5.0, 2.0], scene.camera_position, 500.0);
-            let lighting_c = calculate_lighting(rotated_c, [0.0, 5.0, 2.0], scene.camera_position, 500.0);
+            let lighting_a = calculate_lighting(rotated_a, scene.light.position, scene.light.intensity , 5000.0);
+            let lighting_b = calculate_lighting(rotated_b, scene.light.position, scene.light.intensity, 5000.0);
+            let lighting_c = calculate_lighting(rotated_c, scene.light.position, scene.light.intensity, 5000.0);
 
             let posed_a = [
                 rotated_a[0] + position[0] + scene.camera_position[0],
@@ -413,7 +420,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
 fn calculate_lighting(
     vertex: [f32; 3],
     light_position: [f32; 3],
-    camera_position: [f32; 3],
+    intensity: f32,
     max_distance: f32,
 ) -> [f32; 3] {
     let light_direction = [
@@ -460,15 +467,16 @@ fn calculate_lighting(
     // Ensure the dot product is clamped to the range [0, 1]
     let clamped_dot_product = dot_product.0.max(0.0).min(1.0);
 
-    // Calculate the lighting based on the clamped dot product
+    // Calculate the lighting based on the clamped dot product and the intensity
     let lighting = [
-        clamped_dot_product,
-        clamped_dot_product,
-        clamped_dot_product,
+        clamped_dot_product * intensity,
+        clamped_dot_product * intensity,
+        clamped_dot_product * intensity,
     ];
 
     lighting
 }
+
 
 
 
