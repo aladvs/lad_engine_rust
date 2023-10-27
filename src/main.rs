@@ -64,8 +64,8 @@ impl Default for Content {
             current_scene: Scene::default(),
             speed_slider: (0.0, 10.0, 0.0), 
             pos_slider: (0.0, 0.0, 0.0),
-            light_intensity: 32.3,
-            light_pos: [5.7, 0.6, 4.5]
+            light_intensity: 16.4,
+            light_pos: [1.5, 2.2, 4.5]
         }
     }
 }
@@ -82,7 +82,7 @@ impl Default for Scene {
             //    obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
                 ],
-            light: Light {position: [5.7, 0.6, 4.5], intensity: 32.3},
+            light: Light {position: [1.5, 2.2, 4.5], intensity: 16.4},
         }
     }
 }
@@ -529,15 +529,11 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
 
     // Calculate the color components
     let red 
-//    = (interpolation_factor * 255.0) as u8;
-    = 50.0 as u8;
+    = (20.0 + (interpolation_factor * 255.0)) as u8;
     let green
-    = (interpolation_factor * 255.0) as u8;
-//= (255.0 - interpolation_factor * 255.0) as u8;
-//     = 0.0 as u8;
+    = (20.0 + (interpolation_factor * 255.0)) as u8;
     let blue
-//     = (interpolation_factor * 255.0) as u8;
-    = 100.0 as u8;
+    = (20.0 + (interpolation_factor * 255.0)) as u8;
 
     Color32::from_rgb(red, green, blue)
 }
