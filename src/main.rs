@@ -556,6 +556,8 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add_space(10.0);
         ui.separator();
         ui.add_space(4.0);
+
+    camera_settings(ui, reference, deltaTime);
     
     });
 }
@@ -672,12 +674,31 @@ fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add(egui::DragValue::new(&mut reference.current_scene.light.position[0]).speed(0.1));  
         ui.add(egui::DragValue::new(&mut reference.current_scene.light.position[1]).speed(0.1));  
         ui.add(egui::DragValue::new(&mut reference.current_scene.light.position[2]).speed(0.1));  
-        });
-
-
-
-    
+        });   
 }
+
+fn camera_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.add(TextEdit::singleline(&mut "Camera Settings:").desired_width(110.0));
+    ui.add_space(10.0);
+
+    ui.add(TextEdit::singleline(&mut "Position:").desired_width(110.0));
+    ui.add_space(4.0);
+
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut reference.current_scene.camera_position[0]).speed(0.05));  
+        ui.add(egui::DragValue::new(&mut reference.current_scene.camera_position[1]).speed(0.05));  
+        ui.add(egui::DragValue::new(&mut reference.current_scene.camera_position[2]).speed(0.05));  
+    });
+
+    ui.add(TextEdit::singleline(&mut "Rotation:").desired_width(110.0));
+    ui.add_space(4.0);
+
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut reference.current_scene.camera_rotation[0]).speed(0.05));  
+        ui.add(egui::DragValue::new(&mut reference.current_scene.camera_rotation[1]).speed(0.05));  
+        ui.add(egui::DragValue::new(&mut reference.current_scene.camera_rotation[2]).speed(0.05));  
+    });
+ }
 
 
 
