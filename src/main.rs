@@ -550,22 +550,17 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add_space(10.0);
         ui.separator();
 
-    gerneral_settings(ui, reference, deltaTime);
-    
-        ui.add_space(10.0);
-        ui.separator();
-
-    ui.add(TextEdit::singleline(&mut "Rotation Settings:").desired_width(110.0));
-    
-        ui.add_space(4.0);
-
-    rotation_ui(ui, reference, deltaTime);
-
-        ui.add_space(10.0);
-        ui.separator();
-        ui.add_space(4.0);
-    
     transform_ui(ui, reference, deltaTime);
+
+        ui.add_space(10.0);
+        ui.separator();
+
+    gerneral_settings(ui, reference, deltaTime);
+
+        ui.add_space(10.0);
+        ui.separator();
+        ui.add_space(4.0);
+    
     });
 }
 
@@ -585,6 +580,70 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         }
     });
     }
+}
+
+fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.set_min_width(0.0);
+    //  ui.horizontal(|ui| {
+        ui.add(TextEdit::singleline(&mut "Transform:").desired_width(110.0));
+        ui.add_space(4.0);
+
+        ui.horizontal(|ui| {
+            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].position[0]).speed(0.05));  
+            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].position[1]).speed(0.05));  
+            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].position[2]).speed(0.05));  
+        });
+    
+        ui.add_space(4.0);
+        
+        rotation_ui(ui, reference, deltaTime);
+}
+
+fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.vertical(|ui| {
+        ui.add(TextEdit::singleline(&mut "Rotations:").desired_width(110.0));
+
+
+        ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[0]).speed(0.1));  
+        ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[1]).speed(0.1));  
+        ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[2]).speed(0.1));  
+         });
+
+
+    });
+    ui.add_space(10.0);
+    ui.vertical(|ui| {
+        ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
+        ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
+
+        if (ui.button("Reset").clicked()) {
+            reference.current_scene.objects[reference.selected_object].rotation[0] = 0.0;
+            reference.speed_slider.0 = 0.0
+        }
+
+    });
+    ui.vertical(|ui| {
+        ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
+        ui.add(egui::Slider::new(&mut reference.speed_slider.1, 0.0..=100.0));
+
+        if (ui.button("Reset").clicked()) {
+            reference.current_scene.objects[reference.selected_object].rotation[1] = 0.0;
+            reference.speed_slider.1 = 0.0
+        }
+
+    });
+    ui.vertical(|ui| {
+        ui.add(TextEdit::singleline(&mut "Z Rotation Speed").desired_width(110.0));
+        ui.add(egui::Slider::new(&mut reference.speed_slider.2, 0.0..=100.0));
+
+        if (ui.button("Reset").clicked()) {
+            reference.current_scene.objects[reference.selected_object].rotation[2] = 0.0;
+            reference.speed_slider.2 = 0.0
+        }
+    });
+// });
+ui.add_space(10.0);
 }
 
 fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
@@ -616,82 +675,6 @@ fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     
 }
 
-fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
-    ui.set_min_width(0.0);
-  //  ui.horizontal(|ui| {
-        ui.vertical(|ui| {
-            ui.add(TextEdit::singleline(&mut "Rotations:").desired_width(110.0));
-
-
-            ui.horizontal(|ui| {
-            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[0]).speed(0.1));  
-            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[1]).speed(0.1));  
-            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[2]).speed(0.1));  
-             });
-
-
-        });
-
-        ui.vertical(|ui| {
-            ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
-            ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
-
-            if (ui.button("Reset").clicked()) {
-                reference.current_scene.objects[reference.selected_object].rotation[0] = 0.0;
-                reference.speed_slider.0 = 0.0
-            }
-
-        });
-        ui.vertical(|ui| {
-            ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
-            ui.add(egui::Slider::new(&mut reference.speed_slider.1, 0.0..=100.0));
-
-            if (ui.button("Reset").clicked()) {
-                reference.current_scene.objects[reference.selected_object].rotation[1] = 0.0;
-                reference.speed_slider.1 = 0.0
-            }
-
-        });
-        ui.vertical(|ui| {
-            ui.add(TextEdit::singleline(&mut "Z Rotation Speed").desired_width(110.0));
-            ui.add(egui::Slider::new(&mut reference.speed_slider.2, 0.0..=100.0));
-
-            if (ui.button("Reset").clicked()) {
-                reference.current_scene.objects[reference.selected_object].rotation[2] = 0.0;
-                reference.speed_slider.2 = 0.0
-            }
-        });
-   // });
-   ui.add_space(10.0);
-
-}
-
-fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
-    ui.set_min_width(0.0);
-    //  ui.horizontal(|ui| {
-        reference.pos_slider.0 = reference.current_scene.objects[reference.selected_object].position[0];
-        reference.pos_slider.1 = reference.current_scene.objects[reference.selected_object].position[1];
-        reference.pos_slider.2 = reference.current_scene.objects[reference.selected_object].position[2];
-
-          ui.vertical(|ui| {
-              ui.add(TextEdit::singleline(&mut "X").desired_width(110.0));
-              ui.add(egui::Slider::new(&mut reference.pos_slider.0, -5.0..=5.0).clamp_to_range(false));
-          });
-  
-          ui.vertical(|ui| {
-              ui.add(TextEdit::singleline(&mut "Y").desired_width(110.0));
-              ui.add(egui::Slider::new(&mut reference.pos_slider.1, -5.0..=5.0).clamp_to_range(false));
-  
-  
-          });
-          ui.vertical(|ui| {
-              ui.add(TextEdit::singleline(&mut "Z").desired_width(110.0));
-              ui.add(egui::Slider::new(&mut reference.pos_slider.2, -5.0..=5.0).clamp_to_range(false));
-          });
-          reference.current_scene.objects[reference.selected_object].position[0] = reference.pos_slider.0;
-          reference.current_scene.objects[reference.selected_object].position[1] = reference.pos_slider.1;
-          reference.current_scene.objects[reference.selected_object].position[2] = reference.pos_slider.2;
-}
 
 
     pub(crate) fn load_icon() -> eframe::IconData {
