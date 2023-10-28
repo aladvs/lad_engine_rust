@@ -1,7 +1,7 @@
 [package]
 name = "lad_engine_rust"
-version = "0.1.0"
-edition = "2021"
+version = "1.0.0"
+edition = "2023"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,6 +11,3 @@ egui = "0.23.0"
 egui_extras = { version = "*", features = ["all_loaders"] }
 image = { version = "0.24", features = ["jpeg", "png"] } # Add the types you want support for
 obj-rs = "0.7.1"
-
-[patch.crates-io]
-egui = { git = "https://github.com/aladvs/egui" }
