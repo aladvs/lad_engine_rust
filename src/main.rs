@@ -54,6 +54,7 @@ struct Content {
     current_scene: Scene,
     speed_slider: (f32, f32, f32),
     selected_object: usize,
+    rotation_index: usize,
 }
 
 impl Default for Content {
@@ -63,6 +64,7 @@ impl Default for Content {
             current_scene: Scene::default(),
             speed_slider: (0.0, 10.0, 0.0), 
             selected_object: 0,
+            rotation_index: 0,
         }
     }
 }
@@ -140,9 +142,9 @@ impl eframe::App for Content {
                 CollapsingHeader::new("Settings")
                 .show(ui, |ui| settings_menu(ui, self, deltaTime))
             });
-            self.current_scene.objects[0].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
-            self.current_scene.objects[0].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
-            self.current_scene.objects[0].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
+            self.current_scene.objects[self.rotation_index].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
+            self.current_scene.objects[self.rotation_index].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
+            self.current_scene.objects[self.rotation_index].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
             //rotation_ui(ui, self, deltaTime);
 
             //println!("Number of objects in scene: {}", self.current_scene.objects.len()); 
@@ -595,7 +597,7 @@ fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
 fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.vertical(|ui| {
-        ui.add(TextEdit::singleline(&mut "Rotations:").desired_width(110.0));
+        ui.add(TextEdit::singleline(&mut "Rotation:").desired_width(110.0));
 
 
         ui.horizontal(|ui| {
@@ -607,6 +609,9 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
     });
     ui.add_space(10.0);
+    ui.separator();
+    ui.add_space(4.0);
+    if reference.rotation_index == reference.selected_object {
     ui.vertical(|ui| {
         ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
         ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
@@ -636,6 +641,15 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
             reference.speed_slider.2 = 0.0
         }
     });
+    }
+    let mut checked = false;
+    if reference.rotation_index != reference.selected_object {
+    if ui.checkbox(&mut checked, "Current Rotating").changed() {
+        if checked {
+            reference.rotation_index = reference.selected_object
+        }
+    }
+    };
 // });
 ui.add_space(10.0);
 }
