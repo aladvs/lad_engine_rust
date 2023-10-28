@@ -23,6 +23,7 @@ struct Light {
 
 #[derive(Debug)] 
 struct Mesh {
+    name: String,
     vertices: Vec<(f32, f32, f32)>,
     indices: Vec<u32>,
     position: [f32; 3],
@@ -80,16 +81,16 @@ impl Default for Scene {
             camera_position: [0.0, 0.0, 0.0],
             camera_rotation: [0.0, 0.0, 0.0],
             objects: vec![
-                obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3]), 
+                obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3], "Suzanne"), 
             //    obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
-                obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0])
+                obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0], "Mario")
                 ],
             light: Light {position: [1.5, 2.2, 4.5], intensity: 16.4},
         }
     }
 }
 
-fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3]) -> Mesh {
+fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
     let OBJ_BYTES: &'static [u8] = bytes;
 
     let obj_bytes = Cursor::new(OBJ_BYTES);
@@ -112,6 +113,7 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3]) -> Mesh {
     }
 
     let output = Mesh {
+        name: name.to_string(),
         vertices: mesh_vertices,  // Use the converted mesh vertices
         indices: mesh_indices,   // Use the converted mesh indices
         position,
@@ -575,10 +577,13 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         if index == reference.selected_object {
             enabled = true
         }
-        if (ui.toggle_value(&mut enabled,"Mesh").clicked()) {
+        ui.horizontal(|ui| {
+        ui.add(TextEdit::singleline(&mut "        ").desired_width(8.0));
+        if ui.toggle_value(&mut enabled, format!("{}", mesh.name)).clicked() {
             reference.selected_object = index;
             enabled = true
         }
+    });
     }
 }
 
@@ -615,16 +620,28 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
   //  ui.horizontal(|ui| {
         ui.vertical(|ui| {
-            ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
+            ui.add(TextEdit::singleline(&mut "Rotations:").desired_width(110.0));
 
+
+            ui.horizontal(|ui| {
+            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[0]).speed(0.1));  
+            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[1]).speed(0.1));  
+            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[2]).speed(0.1));  
+             });
+
+
+        });
+
+        ui.vertical(|ui| {
+            ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
             ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
 
             if (ui.button("Reset").clicked()) {
                 reference.current_scene.objects[reference.selected_object].rotation[0] = 0.0;
                 reference.speed_slider.0 = 0.0
             }
-        });
 
+        });
         ui.vertical(|ui| {
             ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
             ui.add(egui::Slider::new(&mut reference.speed_slider.1, 0.0..=100.0));
