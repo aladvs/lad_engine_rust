@@ -54,7 +54,8 @@ struct Content {
     speed_slider: (f32, f32, f32),
     pos_slider: (f32, f32, f32),
     light_intensity: f32,
-    light_pos: [f32;3]
+    light_pos: [f32;3],
+    selected_object: usize,
 }
 
 impl Default for Content {
@@ -65,7 +66,8 @@ impl Default for Content {
             speed_slider: (0.0, 10.0, 0.0), 
             pos_slider: (0.0, 0.0, 0.0),
             light_intensity: 16.4,
-            light_pos: [1.5, 2.2, 4.5]
+            light_pos: [1.5, 2.2, 4.5],
+            selected_object: 0,
         }
     }
 }
@@ -541,6 +543,11 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
 
 fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     egui::ScrollArea::vertical().show(ui, |ui| {
+    scene_view(ui, reference, deltaTime);
+
+        ui.add_space(10.0);
+        ui.separator();
+
     gerneral_settings(ui, reference, deltaTime);
     
         ui.add_space(10.0);
@@ -558,6 +565,21 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     
     transform_ui(ui, reference, deltaTime);
     });
+}
+
+fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+    ui.add(TextEdit::singleline(&mut "Scene:").desired_width(110.0)); 
+
+    for (index, mesh) in reference.current_scene.objects.iter_mut().enumerate() {
+        let mut enabled = false;
+        if index == reference.selected_object {
+            enabled = true
+        }
+        if (ui.toggle_value(&mut enabled,"Mesh").clicked()) {
+            reference.selected_object = index;
+            enabled = true
+        }
+    }
 }
 
 fn gerneral_settings(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
@@ -598,7 +620,7 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
             ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
 
             if (ui.button("Reset").clicked()) {
-                reference.current_scene.objects[0].rotation[0] = 0.0;
+                reference.current_scene.objects[reference.selected_object].rotation[0] = 0.0;
                 reference.speed_slider.0 = 0.0
             }
         });
@@ -608,7 +630,7 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
             ui.add(egui::Slider::new(&mut reference.speed_slider.1, 0.0..=100.0));
 
             if (ui.button("Reset").clicked()) {
-                reference.current_scene.objects[0].rotation[1] = 0.0;
+                reference.current_scene.objects[reference.selected_object].rotation[1] = 0.0;
                 reference.speed_slider.1 = 0.0
             }
 
@@ -618,7 +640,7 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
             ui.add(egui::Slider::new(&mut reference.speed_slider.2, 0.0..=100.0));
 
             if (ui.button("Reset").clicked()) {
-                reference.current_scene.objects[0].rotation[2] = 0.0;
+                reference.current_scene.objects[reference.selected_object].rotation[2] = 0.0;
                 reference.speed_slider.2 = 0.0
             }
         });
@@ -630,9 +652,9 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
     //  ui.horizontal(|ui| {
-        reference.pos_slider.0 = reference.current_scene.objects[0].position[0];
-        reference.pos_slider.1 = reference.current_scene.objects[0].position[1];
-        reference.pos_slider.2 = reference.current_scene.objects[0].position[2];
+        reference.pos_slider.0 = reference.current_scene.objects[reference.selected_object].position[0];
+        reference.pos_slider.1 = reference.current_scene.objects[reference.selected_object].position[1];
+        reference.pos_slider.2 = reference.current_scene.objects[reference.selected_object].position[2];
 
           ui.vertical(|ui| {
               ui.add(TextEdit::singleline(&mut "X").desired_width(110.0));
@@ -649,9 +671,9 @@ fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
               ui.add(TextEdit::singleline(&mut "Z").desired_width(110.0));
               ui.add(egui::Slider::new(&mut reference.pos_slider.2, -5.0..=5.0).clamp_to_range(false));
           });
-          reference.current_scene.objects[0].position[0] = reference.pos_slider.0;
-          reference.current_scene.objects[0].position[1] = reference.pos_slider.1;
-          reference.current_scene.objects[0].position[2] = reference.pos_slider.2;
+          reference.current_scene.objects[reference.selected_object].position[0] = reference.pos_slider.0;
+          reference.current_scene.objects[reference.selected_object].position[1] = reference.pos_slider.1;
+          reference.current_scene.objects[reference.selected_object].position[2] = reference.pos_slider.2;
 }
 
 
