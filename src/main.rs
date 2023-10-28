@@ -5,7 +5,6 @@ use egui::*;
 use std::fs::File;
 use std::io::{BufReader, Cursor};
 use obj::{load_obj, Obj};
-//use std::time::Instant;
 
 
 
@@ -35,8 +34,6 @@ struct Mesh {
 
 
 fn main() -> Result<(), eframe::Error> {
-   // env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
-   // let options = eframe::NativeOptions::default();
    let options = eframe::NativeOptions {
     icon_data: Some(load_icon()),
     ..Default::default()
@@ -78,7 +75,6 @@ impl Default for Scene {
             camera_rotation: [0.0, 0.0, 0.0],
             objects: vec![
                 obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3], "Suzanne"), 
-            //    obj_to_mesh(include_bytes!("models/ghandi.obj"), [0.0, 0.0, 0.0]),
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0], "Mario")
                 ],
             light: Light {position: [1.5, 2.2, 4.5], intensity: 16.4},
@@ -93,16 +89,14 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
     let input = BufReader::new(obj_bytes);
     let mesh: Obj = load_obj(input).expect("AAAA");
     
-    let mut mesh_vertices = vec![];  // Create an empty vector to store mesh vertices
-    let mut mesh_indices = vec![];   // Create an empty vector to store mesh indices
+    let mut mesh_vertices = vec![];  
+    let mut mesh_indices = vec![];  
 
     for index in &mesh.indices {
-        // Add each vertex index to the mesh indices
-        mesh_indices.push(*index as u32); // Convert to u32 if necessary
+        mesh_indices.push(*index as u32); 
     }
 
     for vertex in &mesh.vertices {
-        // Access the 'position' field to get the vertex coordinates
         let position = vertex.position;
         let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
         mesh_vertices.push(mesh_vertex);
@@ -110,8 +104,8 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
 
     let output = Mesh {
         name: name.to_string(),
-        vertices: mesh_vertices,  // Use the converted mesh vertices
-        indices: mesh_indices,   // Use the converted mesh indices
+        vertices: mesh_vertices,  
+        indices: mesh_indices,   
         position,
         rotation: [0.0, 0.0, 0.0],
         scale: [1.0, 1.0, 1.0],
@@ -123,10 +117,6 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.stable_dt);
-       // self.current_scene.objects[0].rotation[1] += 0.6 * deltaTime;
-       // self.current_scene.objects[0].rotation[0] += 0.6 * deltaTime;
-
-      //  println!("{}",deltaTime);
         let stroke = Stroke::new(0.5, Color32::WHITE);
 
         handle_input(&mut self.current_scene, ctx, deltaTime);
@@ -145,35 +135,31 @@ impl eframe::App for Content {
             self.current_scene.objects[self.rotation_index].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
             self.current_scene.objects[self.rotation_index].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
             self.current_scene.objects[self.rotation_index].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
-            //rotation_ui(ui, self, deltaTime);
-
-            //println!("Number of objects in scene: {}", self.current_scene.objects.len()); 
         });
         ctx.request_repaint();
     }
 }
 
 fn handle_input(reference : &mut Scene, ctx : &Context, deltaTime: f32) {
-    let camera_rotation = reference.camera_rotation[1]; // Get the camera's Y rotation
+    let camera_rotation = reference.camera_rotation[1];
     let move_speed = 10.0 * deltaTime;
+    //Yes, this is a mess.
+    //No, I don't care.
+    //Calculates direction based on camera Y rotation.
 
     if ctx.input(|i| i.key_down(Key::W)) {
-        // Move forward relative to the camera's rotation
         reference.camera_position[0] -= camera_rotation.to_radians().sin() * move_speed;
         reference.camera_position[2] += camera_rotation.to_radians().cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::S)) {
-        // Move backward relative to the camera's rotation
         reference.camera_position[0] += camera_rotation.to_radians().sin() * move_speed;
         reference.camera_position[2] -= camera_rotation.to_radians().cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::A)) {
-        // Move left relative to the camera's rotation
         reference.camera_position[0] += (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).sin() * move_speed;
         reference.camera_position[2] -= (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).cos() * move_speed;
     }
     if ctx.input(|i| i.key_down(Key::D)) {
-        // Move right relative to the camera's rotation
         reference.camera_position[0] -= (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).sin() * move_speed;
         reference.camera_position[2] += (camera_rotation.to_radians() + std::f32::consts::FRAC_PI_2).cos() * move_speed;
     }
@@ -195,17 +181,17 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
 
     let mut result = [0.0, 0.0, 0.0];
 
-    // Apply rotation around X-axis
+    // X-axis
     result[0] = vertex.0;
     result[1] = cos_x * vertex.1 - sin_x * vertex.2;
     result[2] = sin_x * vertex.1 + cos_x * vertex.2;
 
-    // Apply rotation around Y-axis
+    // Y-axis
     let temp_x = cos_y * result[0] + sin_y * result[2];
     result[2] = -sin_y * result[0] + cos_y * result[2];
     result[0] = temp_x;
 
-    // Apply rotation around Z-axis
+    // Z-axis
     let temp_x = cos_z * result[0] - sin_z * result[1];
     result[1] = sin_z * result[0] + cos_z * result[1];
     result[0] = temp_x;
@@ -214,56 +200,11 @@ fn apply_rotation(vertex: (f32, f32, f32), angles: [f32; 3]) -> [f32; 3] {
 }
 
 
-/*fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) -> [f32; 3] {
-    // Calculate the vectors for two edges of the triangle
-    let edge1 = [vertex_b[0] - vertex_a[0], vertex_b[1] - vertex_a[1], vertex_b[2] - vertex_a[2]];
-    let edge2 = [vertex_c[0] - vertex_a[0], vertex_c[1] - vertex_a[1], vertex_c[2] - vertex_a[2]];
-
-    // Calculate the normal using the right-hand rule (cross product)
-    let normal = [
-        edge2[1] * edge1[2] - edge2[2] * edge1[1],
-        edge2[2] * edge1[0] - edge2[0] * edge1[2],
-        edge2[0] * edge1[1] - edge2[1] * edge1[0],
-    ];
-    
-
-    // Normalize the normal
-    let length = (normal[0].powi(2) + normal[1].powi(2) + normal[2].powi(2)).sqrt();
-
-    [
-        normal[0] / length,
-        normal[1] / length,
-        normal[2] / length,
-    ]
-} 
-fn calculate_normal(triangle: [Pos2; 3]) -> [f32; 3] {
-    // Calculate the normal for the triangle
-    let edge1 = [triangle[1].x - triangle[0].x, triangle[1].y - triangle[0].y, 0.0];
-    let edge2 = [triangle[2].x - triangle[0].x, triangle[2].y - triangle[0].y, 0.0];
-    let cross_product = [
-        edge1[1] * edge2[2] - edge1[2] * edge2[1],
-        edge1[2] * edge2[0] - edge1[0] * edge2[2],
-        edge1[0] * edge2[1] - edge1[1] * edge2[0],
-    ];
-
-    // Normalize the normal vector
-    let length = (cross_product[0].powi(2) + cross_product[1].powi(2) + cross_product[2].powi(2)).sqrt();
-    [
-        cross_product[0] / length,
-        cross_product[1] / length,
-        cross_product[2] / length,
-    ]
-} */
-
-
-
 fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
-//    let now = Instant::now();
     let canvas_width = ui.ctx().screen_rect().width();
     let canvas_height = ui.ctx().screen_rect().height();
     let half_width = canvas_width / 2.0;
     let half_height = canvas_height / 2.0;
-    let viewport_size = canvas_width.max(canvas_height);
 
 
     let mut mesh = egui::Mesh::default();
@@ -305,7 +246,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 rotated_c[2] + position[2],
             ];
 
-            // Calculate lighting for each vertex here
+            //Lighting is calculated here, as everything after takes the camera into account. Lighting should be camera dependent.
             let lighting_a = calculate_lighting(pose_a, pose_b, pose_c, scene.light.position, scene.light.intensity , 5000.0);
 
             let posed_a = [
@@ -326,7 +267,6 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 pose_c[2] + scene.camera_position[2] - 10.0,
             ];
 
-            // Calculate the final positions
             let mut final_a = apply_rotation(
                 (posed_a[0], posed_a[1], posed_a[2]),
                 [
@@ -403,10 +343,6 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 ];
 
                 let lighting = value_to_color((lighting_a[0] + lighting_a[1] + lighting_a[2]) / 3.0, 0.0, 1.0 );
-                //println!("{:#?}", (lighting_a[0] + lighting_a[1] + lighting_a[2]) / 3.0);
-                //if (lighting_a[0] + lighting_a[1] + lighting_a[2]) / 3.0 > 0.7 {
-                //    println!("AAAA");
-                //}
                 triangles_with_depth.push((object_index, triangle, depth, lighting));
             }
         }
@@ -418,20 +354,15 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     for (_, triangle, _, lighting) in triangles_with_depth {
         let color = lighting;
 
-        // Add vertices to the mesh with the cached lighting color
         mesh.colored_vertex(triangle[0], color);
         mesh.colored_vertex(triangle[1], color);
         mesh.colored_vertex(triangle[2], color);
 
-        // Add indices to the mesh (as previously shown)
         let vertex_count = mesh.vertices.len() as u32;
         mesh.add_triangle(vertex_count - 3, vertex_count - 2, vertex_count - 1);
     }
 
     ui.painter().add(egui::Shape::mesh(mesh));
-
-//    let elapsed = now.elapsed();
-//    println!("Elapsed: {:.2?}", elapsed);
 }
 
 fn calculate_lighting(
@@ -442,7 +373,6 @@ fn calculate_lighting(
     intensity: f32,
     max_distance: f32,
 ) -> [f32; 3] {
-    // Calculate the surface normal of the triangle
     let mut normal = calculate_normal(vertex_a, vertex_b, vertex_c);
     normal = [
         normal[0],
@@ -481,10 +411,9 @@ fn calculate_lighting(
         return [0.0, 0.0, 0.0];
     }
 
-    // Calculate the lighting intensity using Lambert's Cosine Law
+    //Lambert's Cosine Law
     let lighting_intensity = intensity * cos_theta / (distance * distance);
 
-    // Return the lighting intensity as RGB color
     [lighting_intensity, lighting_intensity, lighting_intensity]
 }
 
@@ -521,7 +450,7 @@ fn calculate_normal(vertex_a: [f32; 3], vertex_b: [f32; 3], vertex_c: [f32; 3]) 
 
 
 fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
-    // Clamp the value to the specified range
+
     let clamped_value = value.clamp(min_value, max_value);
 
     // Map the clamped value to the range [0.0, 1.0]
@@ -582,7 +511,6 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
-    //  ui.horizontal(|ui| {
         ui.add(TextEdit::singleline(&mut "Transform:").desired_width(110.0));
         ui.add_space(4.0);
 
@@ -652,7 +580,6 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         }
     }
     };
-// });
 ui.add_space(10.0);
 }
 
