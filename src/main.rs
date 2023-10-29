@@ -27,7 +27,6 @@ struct Mesh {
     indices: Vec<u32>,
     position: [f32; 3],
     rotation: [f32; 3], 
-    scale: [f32; 3],
 }
 
 
@@ -108,7 +107,6 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
         indices: mesh_indices,   
         position,
         rotation: [0.0, 0.0, 0.0],
-        scale: [1.0, 1.0, 1.0],
     };
 
     output
@@ -257,7 +255,7 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
                 rotated_c[2] + position[2],
             ];
 
-            //Lighting is calculated here, as everything after takes the camera into account. Lighting should be camera dependent.
+            //Lighting is calculated here, as everything after takes the camera into account. Lighting should not be camera dependent.
             let lighting_a = calculate_lighting(pose_a, pose_b, pose_c, scene.light.position, scene.light.intensity , 5000.0);
 
             let posed_a = [
@@ -468,6 +466,7 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
     let interpolation_factor = (clamped_value - min_value) / (max_value - min_value);
 
     // Calculate the color components
+    //Change the 20.0 to change the base color
     let red 
     = (20.0 + (interpolation_factor * 255.0)) as u8;
     let green
@@ -478,6 +477,10 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
     Color32::from_rgb(red, green, blue)
 }
 
+/*
+ * --------------------------------------------
+ *                    UI
+*/
 
 fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     egui::ScrollArea::vertical().show(ui, |ui| {
