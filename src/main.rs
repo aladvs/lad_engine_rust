@@ -132,9 +132,16 @@ impl eframe::App for Content {
                 CollapsingHeader::new("Settings")
                 .show(ui, |ui| settings_menu(ui, self, deltaTime))
             });
-            self.current_scene.objects[self.rotation_index].rotation[0] += (self.speed_slider.0 * 0.1) * deltaTime;
-            self.current_scene.objects[self.rotation_index].rotation[1] += (self.speed_slider.1 * 0.1) * deltaTime;
-            self.current_scene.objects[self.rotation_index].rotation[2] += (self.speed_slider.2 * 0.1) * deltaTime;
+
+            self.current_scene.objects[self.rotation_index].rotation[0] += self.speed_slider.0 * 10.0 * deltaTime;
+            self.current_scene.objects[self.rotation_index].rotation[1] += self.speed_slider.1 * 10.0 * deltaTime;
+            self.current_scene.objects[self.rotation_index].rotation[2] += self.speed_slider.2 * 10.0 * deltaTime;
+
+            //Limit rotation amount without changing effective rotation
+            self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[0].rem_euclid(360.0);
+            self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[1].rem_euclid(360.0);
+            self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[2].rem_euclid(360.0);
+            
         });
         ctx.request_repaint();
     }
@@ -213,7 +220,11 @@ fn render_scene(scene: &Scene, stroke: Stroke, ui: &Ui) {
     for (object_index, mesh) in scene.objects.iter().enumerate() {
         let vertices = &mesh.vertices;
         let indices = &mesh.indices;
-        let rotation = &mesh.rotation;
+        let rotation = &[
+            mesh.rotation[0].to_radians(),
+            mesh.rotation[1].to_radians(),
+            mesh.rotation[2].to_radians(),
+        ];
         let position = &mesh.position;
 
         for i in (0..indices.len()).step_by(3) {
