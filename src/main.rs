@@ -282,8 +282,8 @@ impl eframe::App for Content {
 
             //Limit rotation amount without changing effective rotation
             self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[0].rem_euclid(360.0);
-            self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[1].rem_euclid(360.0);
-            self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[2].rem_euclid(360.0);
+            self.current_scene.objects[self.rotation_index].rotation[1] =  self.current_scene.objects[self.rotation_index].rotation[1].rem_euclid(360.0);
+            self.current_scene.objects[self.rotation_index].rotation[2] =  self.current_scene.objects[self.rotation_index].rotation[2].rem_euclid(360.0);
             
         });
         ctx.request_repaint();
