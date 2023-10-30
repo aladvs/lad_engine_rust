@@ -35,6 +35,7 @@ struct Mesh {
 fn main() -> Result<(), eframe::Error> {
    let options = eframe::NativeOptions {
     icon_data: Some(load_icon()),
+    drag_and_drop_support: true,
     ..Default::default()
 };
 
@@ -51,6 +52,7 @@ struct Content {
     speed_slider: (f32, f32, f32),
     selected_object: usize,
     rotation_index: usize,
+    dropped_files: Vec<egui::DroppedFile>,
 }
 
 impl Default for Content {
@@ -61,6 +63,7 @@ impl Default for Content {
             speed_slider: (0.0, 10.0, 0.0), 
             selected_object: 0,
             rotation_index: 0,
+            dropped_files: vec!(),
         }
     }
 }
@@ -112,6 +115,53 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
     output
 }
 
+fn drag_to_mesh(bytes: &Option<std::sync::Arc<[u8]>>, position: [f32; 3], name: &str) -> Mesh {
+    let mut output = Mesh {
+        name: "error".to_string(),
+        vertices: vec![],
+        indices: vec![],
+        position,
+        rotation: [0.0, 0.0, 0.0],
+    };
+
+    if let Some(data) = bytes.as_ref().map(|data| data.as_ref()) {
+        let obj_bytes = Cursor::new(data);
+        let input = BufReader::new(obj_bytes);
+
+        // Use the '?' operator to handle the potential error from load_obj
+        let mesh: Obj = match load_obj(input) {
+            Ok(mesh) => mesh,
+            Err(error) => {
+                eprintln!("Error loading OBJ: {:?}", error);
+                return output; // Return early on error
+            }
+        };
+
+        let mut mesh_vertices = vec![];
+        let mut mesh_indices = vec![];
+
+        for index in &mesh.indices {
+            mesh_indices.push(*index as u32);
+        }
+
+        for vertex in &mesh.vertices {
+            let position = vertex.position;
+            let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
+            mesh_vertices.push(mesh_vertex);
+        }
+
+        output = Mesh {
+            name: name.to_string(),
+            vertices: mesh_vertices,
+            indices: mesh_indices,
+            position,
+            rotation: [0.0, 0.0, 0.0],
+        };
+    }
+
+    output
+}
+
 impl eframe::App for Content {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut deltaTime = ctx.input(|ctx| ctx.stable_dt);
@@ -120,6 +170,101 @@ impl eframe::App for Content {
         handle_input(&mut self.current_scene, ctx, deltaTime);
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            
+            if !self.dropped_files.is_empty() {
+                ui.group(|ui| {
+                    ui.label("Dropped files:");
+
+                    for file in &self.dropped_files {
+                        println!("{:#?}", file);
+                        let mut info = if let Some(path) = &file.path {
+                            path.display().to_string()
+                        } else if !file.name.is_empty() {
+                            file.name.clone()
+                        } else {
+                            "???".to_owned()
+                        };
+
+                        if Option::is_some(&file.bytes) {
+                            self.current_scene.objects.append(&mut vec![drag_to_mesh(&file.bytes, [0.0,0.0,0.0], &info.as_str())]);
+                        }
+
+                        if !cfg!(target_arch = "wasm32") {
+                            if let Some(path) = &file.path {
+                                match File::open(&path) {
+                                    Ok(file2) => {
+                                        let mut input = BufReader::new(file2);
+                                        // Now you can use 'input' for reading from the file.
+                                        let mesh: Obj = match load_obj(input) {
+                                            Ok(mesh) => mesh,
+                                            Err(err) => {
+                                                eprintln!("Error loading OBJ: {:?}", err);
+                                                // Handle the error appropriately.
+                                                return; // Exit the function or handle the error in another way
+                                            }
+                                        };
+                        
+                                        let mut mesh_vertices = vec![];
+                                        let mut mesh_indices = vec![];
+                        
+                                        for index in &mesh.indices {
+                                            mesh_indices.push(*index as u32);
+                                        }
+                        
+                                        for vertex in &mesh.vertices {
+                                            let position = vertex.position;
+                                            let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
+                                            mesh_vertices.push(mesh_vertex);
+                                        }
+                        
+                                        let output = Mesh {
+                                            name: "Imported Obj".to_string(),
+                                            vertices: mesh_vertices,
+                                            indices: mesh_indices,
+                                            position: [0.0, 0.0, 0.0],
+                                            rotation: [0.0, 0.0, 0.0],
+                                        };
+                        
+                                        self.current_scene.objects.append(&mut vec![output]);
+                                    }
+                                    Err(err) => {
+                                        eprintln!("Error opening file: {:?}", err);
+                                        // Handle the error appropriately.
+                                    }
+                                }
+                            }
+                        }
+                        
+
+
+                        let mut additional_info = vec![];
+                        if !file.mime.is_empty() {
+                            additional_info.push(format!("type: {}", file.mime));
+                        }
+                        if let Some(bytes) = &file.bytes {
+                            additional_info.push(format!("{} bytes", bytes.len()));
+                        }
+                        if !additional_info.is_empty() {
+                            info += &format!(" ({})", additional_info.join(", "));
+                        }
+
+                        ui.label(info);
+                         }
+                         self.dropped_files = vec!();
+                });
+                    
+            }
+
+            preview_files_being_dropped(ctx);
+
+            ctx.input(|i| {
+                if !i.raw.dropped_files.is_empty() {
+                    self.dropped_files = i.raw.dropped_files.clone();
+                }
+            });
+
+            
+
             render_scene(&self.current_scene, stroke, &ui);
 
 
@@ -142,6 +287,40 @@ impl eframe::App for Content {
             
         });
         ctx.request_repaint();
+    }
+}
+
+fn preview_files_being_dropped(ctx: &egui::Context) {
+    use egui::*;
+    use std::fmt::Write as _;
+
+    if !ctx.input(|i| i.raw.hovered_files.is_empty()) {
+        let text = ctx.input(|i| {
+            let mut text = "Dropping files:\n".to_owned();
+            for file in &i.raw.hovered_files {
+                if let Some(path) = &file.path {
+                    write!(text, "\n{}", path.display()).ok();
+                } else if !file.mime.is_empty() {
+                    write!(text, "\n{}", file.mime).ok();
+                } else {
+                    text += "\n???";
+                }
+            }
+            text
+        });
+
+        let painter =
+            ctx.layer_painter(LayerId::new(Order::Foreground, Id::new("file_drop_target")));
+
+        let screen_rect = ctx.screen_rect();
+        painter.rect_filled(screen_rect, 0.0, Color32::from_black_alpha(192));
+        painter.text(
+            screen_rect.center(),
+            Align2::CENTER_CENTER,
+            text,
+            TextStyle::Heading.resolve(&ctx.style()),
+            Color32::WHITE,
+        );
     }
 }
 
