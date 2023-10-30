@@ -704,6 +704,17 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
+    if ui.button("Delete").clicked() {
+        if !reference.current_scene.objects.is_empty() {
+            if reference.selected_object < reference.current_scene.objects.len() {
+                reference.current_scene.objects.remove(reference.selected_object);
+            } else {
+                //cant delete
+            }
+        }
+    }
+    
+    
         ui.add(TextEdit::singleline(&mut "Transform:").desired_width(110.0));
         ui.add_space(4.0);
 
