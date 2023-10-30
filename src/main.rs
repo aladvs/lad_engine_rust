@@ -170,7 +170,8 @@ impl eframe::App for Content {
         handle_input(&mut self.current_scene, ctx, deltaTime);
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            
+            // -----------------------------
+            // * drag and drop handling *
             if !self.dropped_files.is_empty() {
                 ui.group(|ui| {
                     ui.label("Dropped files:");
@@ -263,7 +264,9 @@ impl eframe::App for Content {
                 }
             });
 
-            
+            // * Drag and drop ^
+            // * SUPER bad and doesnt handle errors but i'm pretty sure it won't crash
+            // -----------------------
 
             render_scene(&self.current_scene, stroke, &ui);
 
