@@ -50,8 +50,8 @@ struct Content {
     text: String,
     current_scene: Scene,
     speed_slider: (f32, f32, f32),
-    selected_object: usize,
-    rotation_index: usize,
+    selected_object: Option<usize>,
+    rotation_index: Option<usize>,
     dropped_files: Vec<egui::DroppedFile>,
 }
 
@@ -61,8 +61,8 @@ impl Default for Content {
             text: String::new(),
             current_scene: Scene::default(),
             speed_slider: (0.0, 10.0, 0.0), 
-            selected_object: 0,
-            rotation_index: 0,
+            selected_object: Some(0),
+            rotation_index: Some(0),
             dropped_files: vec!(),
         }
     }
@@ -279,14 +279,21 @@ impl eframe::App for Content {
                 .show(ui, |ui| settings_menu(ui, self, deltaTime))
             });
 
-            self.current_scene.objects[self.rotation_index].rotation[0] += self.speed_slider.0 * 10.0 * deltaTime;
-            self.current_scene.objects[self.rotation_index].rotation[1] += self.speed_slider.1 * 10.0 * deltaTime;
-            self.current_scene.objects[self.rotation_index].rotation[2] += self.speed_slider.2 * 10.0 * deltaTime;
-
-            //Limit rotation amount without changing effective rotation
-            self.current_scene.objects[self.rotation_index].rotation[0] =  self.current_scene.objects[self.rotation_index].rotation[0].rem_euclid(360.0);
-            self.current_scene.objects[self.rotation_index].rotation[1] =  self.current_scene.objects[self.rotation_index].rotation[1].rem_euclid(360.0);
-            self.current_scene.objects[self.rotation_index].rotation[2] =  self.current_scene.objects[self.rotation_index].rotation[2].rem_euclid(360.0);
+            if let Some(index) = self.rotation_index {
+                if let Some(object) = self.current_scene.objects.get_mut(index) {
+                    object.rotation[0] += self.speed_slider.0 * 10.0 * deltaTime;
+                    object.rotation[1] += self.speed_slider.1 * 10.0 * deltaTime;
+                    object.rotation[2] += self.speed_slider.2 * 10.0 * deltaTime;
+            
+                    /*
+                    * Limit rotation amount without changing effective rotation
+                    object.rotation[0] = object.rotation[0].rem_euclid(360.0);
+                    object.rotation[1] = object.rotation[1].rem_euclid(360.0);
+                    object.rotation[2] = object.rotation[2].rem_euclid(360.0);
+                    * Commented because stuttering issues???
+                     */
+                }
+            }
             
         });
         ctx.request_repaint();
@@ -670,11 +677,15 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
         ui.add_space(10.0);
         ui.separator();
-
-    transform_ui(ui, reference, deltaTime);
+    
+    if reference.selected_object != None {
+        transform_ui(ui, reference, deltaTime);
 
         ui.add_space(10.0);
         ui.separator();
+    }
+
+
 
     gerneral_settings(ui, reference, deltaTime);
 
@@ -692,13 +703,13 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
     for (index, mesh) in reference.current_scene.objects.iter_mut().enumerate() {
         let mut enabled = false;
-        if index == reference.selected_object {
+        if Some(index) == reference.selected_object {
             enabled = true
         }
         ui.horizontal(|ui| {
         ui.add(TextEdit::singleline(&mut "        ").desired_width(8.0));
         if ui.toggle_value(&mut enabled, format!("{}", mesh.name)).clicked() {
-            reference.selected_object = index;
+            reference.selected_object = Some(index);
             enabled = true
         }
     });
@@ -708,13 +719,10 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
     if ui.button("Delete").clicked() {
-        if !reference.current_scene.objects.is_empty() {
-            if reference.selected_object < reference.current_scene.objects.len() {
-                reference.current_scene.objects.remove(reference.selected_object);
-            } else {
-                //cant delete
+            if let Some(selected_object) = reference.selected_object {
+                    reference.current_scene.objects.remove(selected_object);
+                    reference.selected_object = None;
             }
-        }
     }
     
     
@@ -722,9 +730,14 @@ fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add_space(4.0);
 
         ui.horizontal(|ui| {
-            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].position[0]).speed(0.05));  
-            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].position[1]).speed(0.05));  
-            ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].position[2]).speed(0.05));  
+            if let Some(selected_object) = reference.selected_object {
+                if selected_object < reference.current_scene.objects.len() {
+                    ui.add(egui::DragValue::new(&mut reference.current_scene.objects[selected_object].position[0]).speed(0.05));  
+                    ui.add(egui::DragValue::new(&mut reference.current_scene.objects[selected_object].position[1]).speed(0.05));  
+                    ui.add(egui::DragValue::new(&mut reference.current_scene.objects[selected_object].position[2]).speed(0.05));
+                }
+            } 
+            
         });
     
         ui.add_space(4.0);
@@ -738,9 +751,14 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
 
 
         ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[0]).speed(0.1));  
-        ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[1]).speed(0.1));  
-        ui.add(egui::DragValue::new(&mut reference.current_scene.objects[reference.selected_object].rotation[2]).speed(0.1));  
+            if let Some(selected_object) = reference.selected_object {
+                if selected_object < reference.current_scene.objects.len() {
+                    ui.add(egui::DragValue::new(&mut reference.current_scene.objects[selected_object].rotation[0]).speed(0.1));  
+                    ui.add(egui::DragValue::new(&mut reference.current_scene.objects[selected_object].rotation[1]).speed(0.1));  
+                    ui.add(egui::DragValue::new(&mut reference.current_scene.objects[selected_object].rotation[2]).speed(0.1));
+                } 
+            }
+            
          });
 
 
@@ -753,30 +771,45 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add(TextEdit::singleline(&mut "X Rotation Speed").desired_width(110.0));
         ui.add(egui::Slider::new(&mut reference.speed_slider.0, 0.0..=100.0));
 
-        if (ui.button("Reset").clicked()) {
-            reference.current_scene.objects[reference.selected_object].rotation[0] = 0.0;
-            reference.speed_slider.0 = 0.0
+        if let Some(selected_object) = reference.selected_object {
+            if selected_object < reference.current_scene.objects.len() {
+                if ui.button("Reset").clicked() {
+                    reference.current_scene.objects[selected_object].rotation[0] = 0.0;
+                    reference.speed_slider.0 = 0.0;
+                }
+            }
         }
+        
 
     });
     ui.vertical(|ui| {
         ui.add(TextEdit::singleline(&mut "Y Rotation Speed").desired_width(110.0));
         ui.add(egui::Slider::new(&mut reference.speed_slider.1, 0.0..=100.0));
 
-        if (ui.button("Reset").clicked()) {
-            reference.current_scene.objects[reference.selected_object].rotation[1] = 0.0;
-            reference.speed_slider.1 = 0.0
+        if let Some(selected_object) = reference.selected_object {
+            if selected_object < reference.current_scene.objects.len() {
+                if ui.button("Reset").clicked() {
+                    reference.current_scene.objects[selected_object].rotation[1] = 0.0;
+                    reference.speed_slider.1 = 0.0;
+                }
+            }
         }
+        
 
     });
     ui.vertical(|ui| {
         ui.add(TextEdit::singleline(&mut "Z Rotation Speed").desired_width(110.0));
         ui.add(egui::Slider::new(&mut reference.speed_slider.2, 0.0..=100.0));
 
-        if (ui.button("Reset").clicked()) {
-            reference.current_scene.objects[reference.selected_object].rotation[2] = 0.0;
-            reference.speed_slider.2 = 0.0
+        if let Some(selected_object) = reference.selected_object {
+            if selected_object < reference.current_scene.objects.len() {
+                if ui.button("Reset").clicked() {
+                    reference.current_scene.objects[selected_object].rotation[2] = 0.0;
+                    reference.speed_slider.2 = 0.0;
+                }
+            }
         }
+        
     });
     }
     let mut checked = false;
