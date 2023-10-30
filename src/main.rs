@@ -717,6 +717,10 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.add(TextEdit::singleline(&mut "To import an OBJ file,").desired_width(130.0)); 
     ui.add(TextEdit::singleline(&mut "just drag and drop it").desired_width(130.0)); 
     ui.add(TextEdit::singleline(&mut "onto the window.").desired_width(130.0)); 
+
+    ui.add(TextEdit::singleline(&mut "Only triangulated").desired_width(130.0)); 
+    ui.add(TextEdit::singleline(&mut "meshes are").desired_width(130.0)); 
+    ui.add(TextEdit::singleline(&mut "supported.").desired_width(130.0)); 
 }
 
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
@@ -766,6 +770,9 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
          if ui.button("Delete").clicked() {
             if let Some(selected_object) = reference.selected_object {
                     reference.current_scene.objects.remove(selected_object);
+                    if Some(reference.selected_object) == Some(reference.rotation_index) {
+                        reference.rotation_index = None;
+                    }
                     reference.selected_object = None;
             }
     }
