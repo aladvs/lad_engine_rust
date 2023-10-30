@@ -200,8 +200,7 @@ impl eframe::App for Content {
                                             Ok(mesh) => mesh,
                                             Err(err) => {
                                                 eprintln!("Error loading OBJ: {:?}", err);
-                                                // Handle the error appropriately.
-                                                return; // Exit the function or handle the error in another way
+                                                return; 
                                             }
                                         };
                         
@@ -217,9 +216,12 @@ impl eframe::App for Content {
                                             let mesh_vertex = (position[0] as f32, position[1] as f32, position[2] as f32);
                                             mesh_vertices.push(mesh_vertex);
                                         }
-                        
+
+                                        let name: &str = mesh.name.as_deref().unwrap_or("Imported Object");
+
+                                        
                                         let output = Mesh {
-                                            name: "Imported Obj".to_string(),
+                                            name: name.to_string(),
                                             vertices: mesh_vertices,
                                             indices: mesh_indices,
                                             position: [0.0, 0.0, 0.0],
