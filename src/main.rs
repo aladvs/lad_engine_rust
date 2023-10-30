@@ -714,17 +714,13 @@ fn scene_view(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         }
     });
     }
+    ui.add(TextEdit::singleline(&mut "To import an OBJ file,").desired_width(130.0)); 
+    ui.add(TextEdit::singleline(&mut "just drag and drop it").desired_width(130.0)); 
+    ui.add(TextEdit::singleline(&mut "onto the window.").desired_width(130.0)); 
 }
 
 fn transform_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
     ui.set_min_width(0.0);
-    if ui.button("Delete").clicked() {
-            if let Some(selected_object) = reference.selected_object {
-                    reference.current_scene.objects.remove(selected_object);
-                    reference.selected_object = None;
-            }
-    }
-    
     
         ui.add(TextEdit::singleline(&mut "Transform:").desired_width(110.0));
         ui.add_space(4.0);
@@ -761,7 +757,12 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
             
          });
 
-
+         if ui.button("Delete").clicked() {
+            if let Some(selected_object) = reference.selected_object {
+                    reference.current_scene.objects.remove(selected_object);
+                    reference.selected_object = None;
+            }
+    }
     });
     ui.add_space(10.0);
     ui.separator();
@@ -812,13 +813,14 @@ fn rotation_ui(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         
     });
     }
-    let mut checked = false;
-    if reference.rotation_index != reference.selected_object {
+    let mut checked = reference.rotation_index == reference.selected_object;
     if ui.checkbox(&mut checked, "Current Rotating").changed() {
         if checked {
-            reference.rotation_index = reference.selected_object
+            reference.rotation_index = reference.selected_object;
         }
-    }
+        else {
+            reference.rotation_index = None;
+        }
     };
 ui.add_space(10.0);
 }
