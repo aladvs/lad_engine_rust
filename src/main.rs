@@ -278,7 +278,7 @@ impl eframe::App for Content {
             .show(ui, |ui| {
                 ui.set_max_width(170.0);
                 CollapsingHeader::new("Settings")
-                .show(ui, |ui| settings_menu(ui, self, deltaTime))
+                .show(ui, |ui| settings_menu(ui, self, deltaTime, _frame))
             });
 
             if let Some(index) = self.rotation_index {
@@ -673,7 +673,7 @@ fn value_to_color(value: f32, min_value: f32, max_value: f32) -> Color32 {
  *                    UI
 */
 
-fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
+fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32, frame: &mut eframe::Frame) {
     egui::ScrollArea::vertical().show(ui, |ui| {
     scene_view(ui, reference, deltaTime);
 
@@ -696,7 +696,10 @@ fn settings_menu(ui: &mut Ui, reference : &mut Content, deltaTime: f32) {
         ui.add_space(4.0);
 
     camera_settings(ui, reference, deltaTime);
-    
+
+    ui.add_space(4.0);
+
+    ui.label(format!("CPU time: {:.1} ms", 1e3 * frame.info().cpu_usage.unwrap_or(0.0)))
     });
 }
 
