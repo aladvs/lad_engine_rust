@@ -30,6 +30,6 @@ You can import an .obj file by dragging and dropping the file into the window. K
 #### Lighting & Camera Settings:
 You can edit the light's intensity and light position (currently only one light is supported, but adding another light should be straightforward by doing another pass and then adding the two results).
 
-You can also change the camera's position and rotation.
+You can also change the camera's position and rotation (or move using WASD and the left and right arrow keys to rotate).
 
 ![Lighting & Camera Settings](https://github.com/aladvs/lad_engine_rust/assets/78510667/4913c555-3b73-411c-9389-c8d0581408ec)
