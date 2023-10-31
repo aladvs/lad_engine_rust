@@ -79,7 +79,7 @@ impl Default for Scene {
                 obj_to_mesh(include_bytes!("models/suzanne.obj"), [1.6, 0.7, -1.3], "Suzanne"), 
                 obj_to_mesh(include_bytes!("models/mario.obj"), [0.0, 0.0, 0.0], "Mario")
                 ],
-            light: Light {position: [1.5, 2.2, 4.5], intensity: 16.4},
+            light: Light {position: [4.8, 5.1, 4.5], intensity: 29.3},
         }
     }
 }
