@@ -4,7 +4,7 @@ A 3D rasterizer with lighting, written entirely in Rust and using egui.
 > I created this as an introduction to Rust, so I assume there will be a few issues with how my code is structured.
 
 ## Web Demo
-Check out the [Web Demo](https://aladvs.github.io/Lad-Engine-Rust/).
+Check out the [Web Demo](https://aladvs.github.io/Lad-Engine-Rust-web).
 
 
 ![Web Demo](https://github.com/aladvs/lad_engine_rust/assets/78510667/6bc4a0c0-0dc2-456b-ab3e-77b33073facc)
