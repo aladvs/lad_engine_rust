@@ -6,6 +6,9 @@ A 3D rasterizer with lighting, written entirely in Rust and using egui.
 ## Web Demo
 Check out the [Web Demo](https://aladvs.github.io/Lad-Engine-Rust/).
 
+
+![Web Demo](https://github.com/aladvs/lad_engine_rust/assets/78510667/6bc4a0c0-0dc2-456b-ab3e-77b33073facc)
+
 ### How to Use
 #### Scene View:
 There is a scene hierarchy with all objects in the scene. Click on one to edit its attributes or to delete it.
