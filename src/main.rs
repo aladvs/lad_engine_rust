@@ -84,6 +84,7 @@ impl Default for Scene {
     }
 }
 
+// Handles obj to our mesh format for include_bytes!
 fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
     let OBJ_BYTES: &'static [u8] = bytes;
 
@@ -115,6 +116,7 @@ fn obj_to_mesh(bytes:&'static [u8], position: [f32; 3], name: &str) -> Mesh {
     output
 }
 
+//handles obj to our mesh for web builds
 fn drag_to_mesh(bytes: &Option<std::sync::Arc<[u8]>>, position: [f32; 3], name: &str) -> Mesh {
     let mut output = Mesh {
         name: "error".to_string(),
@@ -190,6 +192,7 @@ impl eframe::App for Content {
                             self.current_scene.objects.append(&mut vec![drag_to_mesh(&file.bytes, [0.0,0.0,0.0], &info.as_str())]);
                         }
 
+                        //loads from path
                         if !cfg!(target_arch = "wasm32") {
                             if let Some(path) = &file.path {
                                 match File::open(&path) {
